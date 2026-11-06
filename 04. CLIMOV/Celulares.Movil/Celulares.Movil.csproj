@@ -10,4 +10,21 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
     <ProjectReference Include="..\..\04. COMPARTIDO\Celulares.Cliente\Celulares.Cliente.csproj" />
   </ItemGroup>
+
+  <!-- Copiar automáticamente el APK generado a la carpeta 04. CLIMOV/APK -->
+  <Target Name="CopiarApkACarpetaDestino" AfterTargets="SignAndroidPackage;PackageForAndroid;Publish">
+    <ItemGroup>
+      <_ApkFirmado Include="$(TargetDir)*-Signed.apk;$(PublishDir)*-Signed.apk;$(OutputPath)**\*-Signed.apk" />
+      <_ApkSinFirmar Include="$(TargetDir)*.apk;$(PublishDir)*.apk;$(OutputPath)**\*.apk" Condition="'@(_ApkFirmado)' == ''" />
+    </ItemGroup>
+    <MakeDir Directories="$(MSBuildProjectDirectory)\..\APK" />
+    <Copy SourceFiles="@(_ApkFirmado)"
+          DestinationFolder="$(MSBuildProjectDirectory)\..\APK"
+          SkipUnchangedFiles="true"
+          Condition="'@(_ApkFirmado)' != ''" />
+    <Copy SourceFiles="@(_ApkSinFirmar)"
+          DestinationFolder="$(MSBuildProjectDirectory)\..\APK"
+          SkipUnchangedFiles="true"
+          Condition="'@(_ApkFirmado)' == '' and '@(_ApkSinFirmar)' != ''" />
+  </Target>
 </Project>
