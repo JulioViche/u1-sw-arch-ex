@@ -38,3 +38,4 @@ if "%opcion%"=="2" (
 
 echo Opción no válida.
 pause
+

@@ -1,5 +1,12 @@
-<Window x:Class="Celulares.Escritorio.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Comercializadora GR09" Width="1240" Height="900" MinWidth="860" MinHeight="680" Background="{DynamicResource WindowBrush}" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" Loaded="AlCargar">
+<Window x:Class="Celulares.Escritorio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Comercializadora de Celulares GR09 · Cliente de Escritorio"
+        Width="1320" Height="920" MinWidth="1020" MinHeight="720"
+        Background="{DynamicResource WindowBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" Loaded="AlCargar" WindowStartupLocation="CenterScreen">
   <Window.Resources>
+    <!-- Paleta de Colores (Modo Oscuro Predeterminado) -->
     <SolidColorBrush x:Key="WindowBrush" Color="#080D18"/>
     <SolidColorBrush x:Key="TextBrush" Color="#F5F7FB"/>
     <SolidColorBrush x:Key="MutedBrush" Color="#C6D0E0"/>
@@ -7,60 +14,719 @@
     <SolidColorBrush x:Key="WarningBrush" Color="#FFCD70"/>
     <SolidColorBrush x:Key="ButtonTextBrush" Color="#09111F"/>
     <SolidColorBrush x:Key="InputBrush" Color="#10182A"/>
-    <SolidColorBrush x:Key="GridBrush" Color="#111B2D"/>
-    <SolidColorBrush x:Key="RowBrush" Color="#121E32"/>
-    <SolidColorBrush x:Key="AltRowBrush" Color="#18263B"/>
-    <SolidColorBrush x:Key="HeaderBrush" Color="#1C2C43"/>
-    <SolidColorBrush x:Key="PanelBrush" Color="#D1121C30"/>
-    <SolidColorBrush x:Key="EdgeBrush" Color="#52627A"/>
-    <Style TargetType="TextBox"><Setter Property="Margin" Value="0,5,0,12"/><Setter Property="Padding" Value="10,8"/><Setter Property="MinHeight" Value="38"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/><Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/></Style>
-    <Style TargetType="ComboBox"><Setter Property="Margin" Value="0,5,0,12"/><Setter Property="Padding" Value="8"/><Setter Property="MinHeight" Value="38"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/></Style>
-    <Style TargetType="Button"><Setter Property="Margin" Value="0,6,8,4"/><Setter Property="Padding" Value="15,9"/><Setter Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/><Setter Property="BorderThickness" Value="0"/></Style>
-    <Style TargetType="GroupBox"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/><Setter Property="Background" Value="{DynamicResource PanelBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="18"/><Setter Property="Margin" Value="0,8,12,8"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="GroupBox"><Border CornerRadius="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><TextBlock Text="{TemplateBinding Header}" Margin="18,15,18,5" FontSize="17" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}"/><ContentPresenter Grid.Row="1" Margin="18,8,18,18"/></Grid></Border></ControlTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="DataGrid"><Setter Property="Background" Value="{DynamicResource GridBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/><Setter Property="RowBackground" Value="{DynamicResource RowBrush}"/><Setter Property="AlternatingRowBackground" Value="{DynamicResource AltRowBrush}"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource EdgeBrush}"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="CanUserAddRows" Value="False"/><Setter Property="Margin" Value="0,4,0,12"/><Setter Property="ColumnHeaderStyle"><Setter.Value><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource HeaderBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/><Setter Property="Padding" Value="9,8"/><Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/></Style></Setter.Value></Setter><Setter Property="CellStyle"><Setter.Value><Style TargetType="DataGridCell"><Setter Property="Padding" Value="8,6"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/></Style></Setter.Value></Setter></Style>
+    <SolidColorBrush x:Key="GridBrush" Color="#10182A"/>
+    <SolidColorBrush x:Key="RowBrush" Color="#111B2D"/>
+    <SolidColorBrush x:Key="AltRowBrush" Color="#16233B"/>
+    <SolidColorBrush x:Key="HeaderBrush" Color="#18263E"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="#0E182A"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#121F35"/>
+    <SolidColorBrush x:Key="EdgeBrush" Color="#2D3E56"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="#4ADE80"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#F87171"/>
+
+    <!-- Estilo para TextBox -->
+    <Style TargetType="TextBox">
+      <Setter Property="Margin" Value="0,4,0,10"/>
+      <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="MinHeight" Value="42"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="Background" Value="{DynamicResource InputBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+              <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsFocused" Value="True">
+                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Estilo para ComboBoxItem -->
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Padding" Value="10,8"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBoxItem">
+            <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="6" Margin="2">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource HeaderBrush}"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="border" Property="Background" Value="{DynamicResource EdgeBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Estilo para ComboBox Moderno (Sin fondo blanco en modo oscuro) -->
+    <Style TargetType="ComboBox">
+      <Setter Property="Margin" Value="0,4,0,10"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="MinHeight" Value="42"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="Background" Value="{DynamicResource InputBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid>
+              <ToggleButton x:Name="ToggleButton"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Foreground="{TemplateBinding Foreground}"
+                            Focusable="False"
+                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                            ClickMode="Press">
+                <ToggleButton.Template>
+                  <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="32"/>
+                        </Grid.ColumnDefinitions>
+                        <Path Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 5 5 L 10 0 Z" Fill="{DynamicResource AccentBrush}"/>
+                      </Grid>
+                    </Border>
+                  </ControlTemplate>
+                </ToggleButton.Template>
+              </ToggleButton>
+              <ContentPresenter x:Name="ContentSite"
+                                IsHitTestVisible="False"
+                                Content="{TemplateBinding SelectionBoxItem}"
+                                ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                Margin="12,3,34,3"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"/>
+              <Popup x:Name="Popup"
+                     Placement="Bottom"
+                     IsOpen="{TemplateBinding IsDropDownOpen}"
+                     AllowsTransparency="True"
+                     Focusable="False"
+                     PopupAnimation="Slide">
+                <Grid x:Name="DropDown"
+                      SnapsToDevicePixels="True"
+                      MinWidth="{TemplateBinding ActualWidth}"
+                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                  <Border x:Name="DropDownBorder"
+                          Background="{DynamicResource PanelBrush}"
+                          BorderThickness="1"
+                          BorderBrush="{DynamicResource EdgeBrush}"
+                          CornerRadius="10"
+                          Margin="0,4,0,0">
+                    <ScrollViewer SnapsToDevicePixels="True">
+                      <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" Margin="4"/>
+                    </ScrollViewer>
+                  </Border>
+                </Grid>
+              </Popup>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Estilo para Botones Estándar -->
+    <Style TargetType="Button">
+      <Setter Property="Margin" Value="0,4,8,4"/>
+      <Setter Property="Padding" Value="16,9"/>
+      <Setter Property="MinHeight" Value="40"/>
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="0.92"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="border" Property="RenderTransform">
+                  <Setter.Value>
+                    <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                  </Setter.Value>
+                </Setter>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Estilo para DataGrid -->
+    <Style TargetType="DataGrid">
+      <Setter Property="Background" Value="{DynamicResource GridBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="RowBackground" Value="{DynamicResource RowBrush}"/>
+      <Setter Property="AlternatingRowBackground" Value="{DynamicResource AltRowBrush}"/>
+      <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+      <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource EdgeBrush}"/>
+      <Setter Property="HeadersVisibility" Value="Column"/>
+      <Setter Property="CanUserAddRows" Value="False"/>
+      <Setter Property="ColumnHeaderStyle">
+        <Setter.Value>
+          <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource HeaderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+          </Style>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="CellStyle">
+        <Setter.Value>
+          <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+          </Style>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Window.Resources>
-  <ScrollViewer VerticalScrollBarVisibility="Auto">
-    <StackPanel Margin="28" MaxWidth="1500">
-      <Grid Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Celulares" FontSize="30" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/><TextBlock Text="Comercializadora GR09 · Catálogo, ventas y crédito BanQuito" FontSize="15" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel><Button x:Name="ThemeToggle" Grid.Column="1" Content="Tema claro" Click="CambiarTema" VerticalAlignment="Center"/></Grid>
-      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,0,0,8"><TextBlock x:Name="Estado" Text="Listo para conectar con la comercializadora." TextWrapping="Wrap" Foreground="{DynamicResource WarningBrush}" AutomationProperties.LiveSetting="Polite"/></Border>
-      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <GroupBox Header="Catálogo" Grid.Column="0"><StackPanel>
-          <DataGrid x:Name="Catalogo" Height="205" IsReadOnly="True" AutoGenerateColumns="False" SelectionChanged="SeleccionarCelular">
-            <DataGrid.Columns><DataGridTextColumn Header="ID" Binding="{Binding Id}"/><DataGridTextColumn Header="Celular" Binding="{Binding Nombre}" Width="*"/><DataGridTextColumn Header="Precio de lista" Binding="{Binding Precio, StringFormat={}{0:C2}}"/></DataGrid.Columns>
-          </DataGrid>
-          <Border Height="150" Margin="0,0,0,8" CornerRadius="12" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Background="{DynamicResource InputBrush}">
-            <Image x:Name="FotoCelular" Stretch="Uniform" Margin="8"/>
+
+  <!-- CONTENEDOR PRINCIPAL CON CAPA DE MODALES -->
+  <Grid>
+    <Grid.RowDefinitions>
+      <!-- Header Superior Fijo -->
+      <RowDefinition Height="Auto"/>
+      <!-- Contenido Principal con Scroll -->
+      <RowDefinition Height="*"/>
+      <!-- Barra de Estado Inferior -->
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- HEADER / NAVBAR SEGMENTADO (IDÉNTICO A LA WEB) -->
+    <Border Grid.Row="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="0,0,0,1" Padding="24,12">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Brand / Logo -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="CELULARES" FontSize="18" FontWeight="Black" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
+          <Border Background="{DynamicResource EdgeBrush}" CornerRadius="6" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="GR09" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
           </Border>
-          <TextBlock x:Name="FotoEstado" Text="Seleccione un celular para administrar su foto." TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,4"/>
-          <WrapPanel><Button Content="Cargar o reemplazar foto" Click="CargarFoto"/><Button x:Name="BotonQuitarFoto" Content="Quitar foto" Click="QuitarFoto" IsEnabled="False"/></WrapPanel>
-          <TextBlock Text="Nombre" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="NombreCelular" MaxLength="100"/>
-          <TextBlock Text="Precio de lista (USD)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="PrecioCelular"/>
-          <WrapPanel><Button Content="Nuevo celular" Click="NuevoCelular"/><Button Content="Guardar" Click="GuardarCelular"/><Button Content="Desactivar" Click="DesactivarCelular"/><Button Content="Actualizar catálogo" Click="ActualizarCatalogo"/></WrapPanel>
-        </StackPanel></GroupBox>
-        <GroupBox Header="Nueva venta" Grid.Column="1"><StackPanel>
-          <TextBlock Text="Efectivo: 42% de descuento. Crédito: 16,5% anual, de 3 a 18 cuotas." TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,6"/>
-          <TextBlock Text="Cédula" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="Cedula" MaxLength="100"/>
-          <Button Content="Consultar elegibilidad en BanQuito" Click="EvaluarCredito" HorizontalAlignment="Left"/>
-          <TextBlock x:Name="Elegibilidad" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite"/>
-          <TextBlock Text="Nombre del comprador" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="Comprador" MaxLength="100"/>
-          <TextBlock Text="Seleccione celular" Foreground="{DynamicResource MutedBrush}"/><ComboBox x:Name="CelularVenta" DisplayMemberPath="Nombre" SelectedValuePath="Id" SelectionChanged="CelularVentaSeleccion"/>
-          <TextBlock x:Name="PrecioSeleccionado" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
-          <TextBlock Text="Forma de pago" Foreground="{DynamicResource MutedBrush}"/><ComboBox x:Name="FormaPago" SelectedIndex="0" SelectionChanged="CambioFormaPago"><ComboBoxItem Content="Efectivo" Tag="EFECTIVO"/><ComboBoxItem Content="Crédito directo" Tag="CREDITO_DIRECTO"/></ComboBox>
-          <TextBlock Text="Cuotas para crédito" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="Cuotas"/>
-          <WrapPanel><Button x:Name="BotonVender" Content="Confirmar venta" Click="Vender"/><Button x:Name="BotonReintentar" Content="Reintentar venta" Click="ReintentarVenta"/><Button Content="Nueva venta" Click="NuevaVenta"/></WrapPanel>
-        </StackPanel></GroupBox>
+        </StackPanel>
+
+        <!-- Control Segmentado de Navegación (Tabs) -->
+        <Border Grid.Column="1" HorizontalAlignment="Center" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Padding="4">
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="TabCatalogoBtn" Content="📱  Catálogo" Click="MostrarTabCatalogo" Margin="0,0,4,0" Padding="18,6" MinHeight="34"/>
+            <Button x:Name="TabVentasBtn" Content="💳  Ventas &amp; Facturación" Click="MostrarTabVentas" Margin="0" Padding="18,6" MinHeight="34" Background="Transparent" Foreground="{DynamicResource MutedBrush}"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Botón de Tema (Claro / Oscuro) -->
+        <Button x:Name="ThemeToggle" Grid.Column="2" Content="🌓  Tema claro" Click="CambiarTema" Margin="0" Padding="14,6" MinHeight="34" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}"/>
       </Grid>
-      <GroupBox Header="Facturas y amortización"><StackPanel>
-        <TextBlock Text="Busque por la cédula exacta del comprador. Se muestran sus últimas 50 facturas." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
-        <WrapPanel><TextBox x:Name="CedulaBusqueda" Width="270" MaxLength="100"/><Button Content="Buscar facturas" Click="BuscarFacturas"/><Button Content="Abrir factura seleccionada" Click="AbrirFactura"/></WrapPanel>
-        <DataGrid x:Name="FacturasEncontradas" Height="170" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Single">
-          <DataGrid.Columns><DataGridTextColumn Header="Factura" Binding="{Binding Id}"/><DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:yyyy-MM-dd}}"/><DataGridTextColumn Header="Celular" Binding="{Binding Celular}" Width="*"/><DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat={}{0:C2}}"/><DataGridTextColumn Header="Estado" Binding="{Binding Estado}"/></DataGrid.Columns>
-        </DataGrid>
-        <TextBlock x:Name="DetalleFactura" TextWrapping="Wrap" Margin="0,8,0,8" Foreground="{DynamicResource TextBrush}"/>
-        <DataGrid x:Name="TablaCuotas" Height="210" IsReadOnly="True" AutoGenerateColumns="False">
-          <DataGrid.Columns><DataGridTextColumn Header="Cuota" Binding="{Binding NumeroCuota}"/><DataGridTextColumn Header="Fecha" Binding="{Binding FechaPago, StringFormat={}{0:yyyy-MM-dd}}"/><DataGridTextColumn Header="Valor" Binding="{Binding ValorCuota, StringFormat={}{0:C2}}"/><DataGridTextColumn Header="Interés" Binding="{Binding InteresPagado, StringFormat={}{0:C2}}"/><DataGridTextColumn Header="Capital" Binding="{Binding CapitalPagado, StringFormat={}{0:C2}}"/><DataGridTextColumn Header="Saldo" Binding="{Binding Saldo, StringFormat={}{0:C2}}"/></DataGrid.Columns>
-        </DataGrid>
-      </StackPanel></GroupBox>
-    </StackPanel>
-  </ScrollViewer>
+    </Border>
+
+    <!-- CONTENIDO PRINCIPAL SEGÚN LA PESTAÑA ACTIVA -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <Grid Margin="24">
+
+        <!-- =================================================================== -->
+        <!-- VISTA 1: CATÁLOGO DE CELULARES (TARJETAS IDÉNTICAS A INDEX.CSHTML) -->
+        <!-- =================================================================== -->
+        <StackPanel x:Name="VistaCatalogo" Visibility="Visible">
+          <!-- Hero Banner -->
+          <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="24" Margin="0,0,0,24">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="COMERCIALIZADORA DE CELULARES · GR09" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="Catálogo oficial y financiamiento BanQuito" FontSize="26" FontWeight="Black" Margin="0,4,0,4"/>
+                <TextBlock Text="Gestiona modelos, precios y fotos guardadas en base de datos SQL Server." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
+              </StackPanel>
+              <Button Grid.Column="1" Content="💳  Ir a Ventas &amp; Facturación  &rarr;" Click="MostrarTabVentas" VerticalAlignment="Center" Margin="0" Padding="18,10"/>
+            </Grid>
+          </Border>
+
+          <!-- Encabezado de la Sección de Tarjetas -->
+          <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+              <TextBlock Text="EQUIPOS DISPONIBLES" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+              <TextBlock Text="Modelos en catálogo" FontSize="22" FontWeight="Black" Margin="0,2,0,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+              <Button Content="🔄  Actualizar" Click="ActualizarCatalogo" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Padding="12,8" MinHeight="38" Margin="0,0,8,0"/>
+              <Button Content="＋ Registrar nuevo celular" Click="AbrirModalNuevo" Padding="16,8" MinHeight="38" Margin="0"/>
+            </StackPanel>
+          </Grid>
+
+          <!-- Aviso de Catálogo Vacío -->
+          <Border x:Name="EmptyCatalogoAviso" Visibility="Collapsed" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="16" Padding="40" HorizontalAlignment="Center" Margin="0,30,0,0" Width="500">
+            <StackPanel HorizontalAlignment="Center">
+              <TextBlock Text="📱" FontSize="42" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+              <TextBlock Text="Catálogo vacío" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+              <TextBlock Text="No hay celulares activos actualmente. Registra uno nuevo para comenzar." Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,16"/>
+              <Button Content="＋ Registrar nuevo celular" Click="AbrirModalNuevo" HorizontalAlignment="Center" Padding="20,10"/>
+            </StackPanel>
+          </Border>
+
+          <!-- REJILLA DE TARJETAS (CARDS GRID IDÉNTICO A LA WEB) -->
+          <ItemsControl x:Name="ListaTarjetasCatalogo">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" Margin="-8"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Width="280" Margin="8,8,8,16" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="16" ClipToBounds="True">
+                  <Grid>
+                    <Grid.RowDefinitions>
+                      <RowDefinition Height="185"/>
+                      <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- ÁREA SUPERIOR: FOTO O PLACEHOLDER PARA SUBIR -->
+                    <Border Grid.Row="0" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="0,0,0,1" ClipToBounds="True">
+                      <Grid>
+                        <!-- Placeholder si no tiene foto -->
+                        <Button Click="CargarFotoTarjeta" Tag="{Binding}" Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14"
+                                Visibility="{Binding PlaceholderVisible}">
+                          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="＋" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                            <TextBlock Text="Subir foto" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="JPG, PNG o WebP (máx. 5 MB)" FontSize="10" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                          </StackPanel>
+                        </Button>
+
+                        <!-- Contenedor si tiene foto guardada -->
+                        <Grid Visibility="{Binding FotoVisible}">
+                          <Image Source="{Binding FotoSource}" Stretch="Uniform" Margin="8"/>
+                          <Border VerticalAlignment="Bottom" Background="#B8000000" Padding="8,5">
+                            <Grid>
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+                              <Button Grid.Column="0" Content="📷 Cambiar" Click="CargarFotoTarjeta" Tag="{Binding}" MinHeight="26" Padding="6,2" FontSize="11" Background="{DynamicResource PanelBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,4,0"/>
+                              <Button Grid.Column="1" Content="🗑 Quitar" Click="QuitarFotoTarjeta" Tag="{Binding}" MinHeight="26" Padding="6,2" FontSize="11" Background="{DynamicResource PanelBrush}" Foreground="{DynamicResource DangerBrush}" Margin="4,0,0,0"/>
+                            </Grid>
+                          </Border>
+                        </Grid>
+                      </Grid>
+                    </Border>
+
+                    <!-- ÁREA INFERIOR: DETALLE DEL MODELO, PRECIOS Y ACCIONES -->
+                    <Border Grid.Row="1" Padding="16,14">
+                      <StackPanel>
+                        <TextBlock Text="{Binding Codigo}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="{Binding Nombre}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,0,0,10" ToolTip="{Binding Nombre}"/>
+
+                        <Border Height="1" Background="{DynamicResource EdgeBrush}" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Precio de lista:" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                        <TextBlock Text="{Binding PrecioListaTexto}" FontSize="19" FontWeight="Black" Foreground="{DynamicResource TextBrush}" Margin="0,1,0,2"/>
+                        <TextBlock Text="{Binding PrecioEfectivoTexto}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,0,0,14"/>
+
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
+                          <Button Grid.Column="0" Content="✏️  Editar datos" Click="EditarCelularTarjeta" Tag="{Binding}" MinHeight="34" Padding="10,6" FontSize="12" Background="{DynamicResource CardBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,6,0"/>
+                          <Button Grid.Column="1" Content="Desactivar" Click="DesactivarCelularTarjeta" Tag="{Binding}" MinHeight="34" Padding="12,6" FontSize="12" Background="Transparent" Foreground="{DynamicResource DangerBrush}" BorderThickness="1" BorderBrush="{DynamicResource DangerBrush}" Margin="0"/>
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- =================================================================== -->
+        <!-- VISTA 2: VENTAS & HISTORIAL (IDÉNTICO A VENTAS.CSHTML) -->
+        <!-- =================================================================== -->
+        <StackPanel x:Name="VistaVentas" Visibility="Collapsed">
+          <!-- Hero Banner -->
+          <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="24" Margin="0,0,0,24">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="COMERCIALIZADORA GR09 · FACTURACIÓN" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="Gestión de Ventas y Facturación" FontSize="26" FontWeight="Black" Margin="0,4,0,4"/>
+                <TextBlock Text="Registra ventas con descuento al contado o financiamiento directo con BanQuito, y consulta historiales de compra por cédula." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
+              </StackPanel>
+              <Button Grid.Column="1" Content="📱  Ir a Catálogo  &rarr;" Click="MostrarTabCatalogo" VerticalAlignment="Center" Margin="0" Padding="18,10" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}"/>
+            </Grid>
+          </Border>
+
+          <!-- Grid de 2 Columnas Simétricas (Venta a la izquierda / Historial a la derecha) -->
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="20"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- COLUMNA 1: REGISTRAR VENTA -->
+            <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="22">
+              <StackPanel>
+                <TextBlock Text="NUEVA TRANSACCIÓN" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="Registrar venta de celular" FontSize="20" FontWeight="Bold" Margin="0,2,0,6"/>
+                <TextBlock Text="Efectivo: 42% de descuento inmediato. Crédito BanQuito: tasa 16,5% anual, financiado de 3 a 18 cuotas." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                <!-- Cédula + Botón Consultar BanQuito -->
+                <TextBlock Text="Cédula del comprador" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                <Grid Margin="0,4,0,10">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBox x:Name="Cedula" Grid.Column="0" Margin="0" MaxLength="100"/>
+                  <Button Grid.Column="1" Content="🔍  Consultar BanQuito" Click="EvaluarCredito" Margin="8,0,0,0" Padding="14,0" MinHeight="42" Background="{DynamicResource CardBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"/>
+                </Grid>
+
+                <!-- Feedback de Elegibilidad BanQuito -->
+                <Border x:Name="ElegibilidadBox" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,12">
+                  <TextBlock x:Name="Elegibilidad" Text="Ingrese la cédula y consulte si es sujeto a crédito en BanQuito." Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" FontSize="12"/>
+                </Border>
+
+                <!-- Nombre del comprador (Autocompletado desde BanQuito) -->
+                <TextBlock Text="Nombre del comprador" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                <TextBox x:Name="Comprador" MaxLength="100"/>
+
+                <!-- Celular a adquirir -->
+                <TextBlock Text="Celular a adquirir" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                <ComboBox x:Name="CelularVenta" SelectedValuePath="Id" SelectionChanged="CelularVentaSeleccion">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold"/>
+                        <TextBlock Text=" · " Foreground="{DynamicResource MutedBrush}"/>
+                        <TextBlock Text="{Binding Precio, StringFormat={}{0:C2}}" Foreground="{DynamicResource AccentBrush}"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Resumen de Precio en Tiempo Real -->
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,12">
+                  <TextBlock x:Name="PrecioSeleccionado" Text="Elige un celular para ver el total." Foreground="{DynamicResource WarningBrush}" FontWeight="SemiBold" FontSize="12" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Forma de Pago -->
+                <TextBlock Text="Forma de pago" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                <ComboBox x:Name="FormaPago" SelectedIndex="0" SelectionChanged="CambioFormaPago">
+                  <ComboBoxItem Content="Efectivo (Descuento del 42%)" Tag="EFECTIVO"/>
+                  <ComboBoxItem Content="Crédito directo BanQuito" Tag="CREDITO_DIRECTO"/>
+                </ComboBox>
+
+                <!-- Cuotas de Crédito -->
+                <StackPanel x:Name="GrupoCuotas" Visibility="Collapsed">
+                  <TextBlock Text="Número de cuotas (3 a 18 meses)" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                  <TextBox x:Name="Cuotas"/>
+                </StackPanel>
+
+                <!-- Botones de Venta -->
+                <Button x:Name="BotonVender" Content="✓  Confirmar y emitir factura" Click="Vender" Margin="0,10,0,4" Padding="16,12" FontSize="14" HorizontalAlignment="Stretch"/>
+                <WrapPanel Margin="0,4,0,0">
+                  <Button x:Name="BotonReintentar" Content="Reintentar venta pendiente" Click="ReintentarVenta" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource WarningBrush}" BorderThickness="1" BorderBrush="{DynamicResource WarningBrush}" Padding="12,6" MinHeight="34"/>
+                  <Button Content="Nueva venta" Click="NuevaVenta" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource MutedBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Padding="12,6" MinHeight="34"/>
+                </WrapPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- COLUMNA 2: HISTORIAL DE COMPRAS POR CÉDULA -->
+            <Border Grid.Column="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="22">
+              <StackPanel>
+                <TextBlock Text="CONSULTAS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="Historial de compras por cédula" FontSize="20" FontWeight="Bold" Margin="0,2,0,6"/>
+                <TextBlock Text="Ingresa la cédula del comprador para consultar todas sus facturas históricas emitidas por la comercializadora." Foreground="{DynamicResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                <TextBlock Text="Cédula del cliente" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+                <Grid Margin="0,4,0,14">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBox x:Name="CedulaBusqueda" Grid.Column="0" Margin="0" MaxLength="100"/>
+                  <Button Grid.Column="1" Content="🔎  Buscar facturas" Click="BuscarFacturas" Margin="8,0,0,0" Padding="14,0" MinHeight="42"/>
+                </Grid>
+
+                <!-- Hint de búsqueda inicial -->
+                <Border x:Name="HintBusqueda" Visibility="Visible" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,8,0,14">
+                  <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="💡" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <TextBlock Text="Escribe una cédula arriba y presiona Buscar facturas para consultar los comprobantes asociados." Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="12"/>
+                  </StackPanel>
+                </Border>
+
+                <!-- Tabla de Facturas Encontradas -->
+                <DataGrid x:Name="FacturasEncontradas" Height="260" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Single">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="# ID" Binding="{Binding Id}" Width="55"/>
+                    <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:yyyy-MM-dd}}" Width="95"/>
+                    <DataGridTextColumn Header="Celular" Binding="{Binding Celular}" Width="*"/>
+                    <DataGridTextColumn Header="Pago" Binding="{Binding FormaPago}" Width="95"/>
+                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat={}{0:C2}}" Width="90"/>
+                    <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="85"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+
+                <Button Content="Ver detalle del comprobante  &rarr;" Click="AbrirFactura" Margin="0,14,0,0" Padding="16,10" HorizontalAlignment="Right" Background="{DynamicResource CardBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </StackPanel>
+
+        <!-- =================================================================== -->
+        <!-- VISTA 3: DETALLE DE FACTURA / VOUCHER (IDÉNTICO A FACTURA.CSHTML) -->
+        <!-- =================================================================== -->
+        <StackPanel x:Name="VistaDetalleFactura" Visibility="Collapsed" MaxWidth="960" HorizontalAlignment="Center">
+          <Button Content="&larr;  Volver" Click="VolverDeFactura" HorizontalAlignment="Left" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,0,16" Padding="14,8"/>
+
+          <!-- Tarjeta Voucher / Comprobante -->
+          <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="20" Padding="28">
+            <StackPanel>
+              <!-- Cabecera del Voucher -->
+              <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                  <TextBlock x:Name="FacturaSubtituloTexto" Text="COMPROBANTE · 2026-11-06" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                  <TextBlock x:Name="FacturaIdTexto" Text="Factura #1" FontSize="30" FontWeight="Black" Margin="0,2,0,4"/>
+                  <TextBlock Text="La operación quedó registrada en la comercializadora." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
+                </StackPanel>
+                <Border x:Name="BadgeEstadoFactura" Grid.Column="1" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="20" Padding="16,7" VerticalAlignment="Center">
+                  <TextBlock x:Name="FacturaEstadoTexto" Text="APROBADA" FontWeight="Black" FontSize="13" Foreground="{DynamicResource AccentBrush}"/>
+                </Border>
+              </Grid>
+
+              <!-- Grid de Datos Comprador y Producto -->
+              <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
+                  <StackPanel>
+                    <TextBlock Text="COMPRADOR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="FacturaClienteTexto" Text="Juan Perez" FontSize="17" FontWeight="Bold" Margin="0,0,0,2"/>
+                    <TextBlock x:Name="FacturaCedulaTexto" Text="Cédula 0102030405" Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
+                  <StackPanel>
+                    <TextBlock Text="CELULAR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="FacturaCelularTexto" Text="Celular Nova 256 GB" FontSize="17" FontWeight="Bold" Margin="0,0,0,2"/>
+                    <TextBlock x:Name="FacturaPagoTexto" Text="CREDITO_DIRECTO" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"/>
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <!-- Desglose de Totales Financieros -->
+              <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,22" HorizontalAlignment="Right" Width="400">
+                <StackPanel>
+                  <Grid Margin="0,3">
+                    <TextBlock Text="Precio de lista" Foreground="{DynamicResource MutedBrush}"/>
+                    <TextBlock x:Name="FacturaPrecioTexto" Text="$0.00" HorizontalAlignment="Right" FontWeight="SemiBold"/>
+                  </Grid>
+                  <Grid Margin="0,3">
+                    <TextBlock Text="Descuento" Foreground="{DynamicResource SuccessBrush}"/>
+                    <TextBlock x:Name="FacturaDescuentoTexto" Text="$0.00" HorizontalAlignment="Right" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold"/>
+                  </Grid>
+                  <Separator Background="{DynamicResource EdgeBrush}" Margin="0,10"/>
+                  <Grid>
+                    <TextBlock Text="Total" FontWeight="Black" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="FacturaTotalTexto" Text="$0.00" HorizontalAlignment="Right" FontWeight="Black" FontSize="24" Foreground="{DynamicResource AccentBrush}"/>
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <!-- Tabla de Amortización Francesa -->
+              <StackPanel x:Name="SeccionAmortizacion">
+                <TextBlock Text="PLAN DE PAGOS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Text="Amortización" FontSize="20" FontWeight="Bold" Margin="0,2,0,10"/>
+                <DataGrid x:Name="TablaCuotas" Height="220" IsReadOnly="True" AutoGenerateColumns="False">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Cuota" Binding="{Binding NumeroCuota}" Width="65"/>
+                    <DataGridTextColumn Header="Fecha" Binding="{Binding FechaPago, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
+                    <DataGridTextColumn Header="Valor" Binding="{Binding ValorCuota, StringFormat={}{0:C2}}" Width="110"/>
+                    <DataGridTextColumn Header="Interés" Binding="{Binding InteresPagado, StringFormat={}{0:C2}}" Width="110"/>
+                    <DataGridTextColumn Header="Capital" Binding="{Binding CapitalPagado, StringFormat={}{0:C2}}" Width="110"/>
+                    <DataGridTextColumn Header="Saldo" Binding="{Binding Saldo, StringFormat={}{0:C2}}" Width="*"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </StackPanel>
+
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+      </Grid>
+    </ScrollViewer>
+
+    <!-- BARRA DE ESTADO INFERIOR -->
+    <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="0,1,0,0" Padding="24,8">
+      <TextBlock x:Name="Estado" Text="Listo para conectar con la comercializadora." Foreground="{DynamicResource AccentBrush}" FontSize="12" FontWeight="SemiBold"/>
+    </Border>
+
+    <!-- =================================================================== -->
+    <!-- CAPA SUPERIOR: MODALES DIALOG (IDÉNTICOS A LOS DIALOG DE LA WEB) -->
+    <!-- =================================================================== -->
+
+    <!-- MODAL 1: REGISTRAR NUEVO CELULAR -->
+    <Grid x:Name="ModalNuevo" Visibility="Collapsed" Background="#8A000000">
+      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="480" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <Grid Margin="0,0,0,16">
+            <StackPanel>
+              <TextBlock Text="NUEVO PRODUCTO" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+              <TextBlock Text="Registrar nuevo celular" FontSize="20" FontWeight="Bold" Margin="0,2,0,2"/>
+              <TextBlock Text="Agrega un nuevo modelo y precio al catálogo de la comercializadora" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
+            </StackPanel>
+            <Button Content="✕" Click="CerrarModales" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Foreground="{DynamicResource MutedBrush}" MinHeight="28" Padding="6,2" FontSize="16"/>
+          </Grid>
+
+          <TextBlock Text="Nombre del modelo" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+          <TextBox x:Name="NuevoModalNombre" MaxLength="100"/>
+
+          <TextBlock Text="Precio de lista (USD)" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+          <TextBox x:Name="NuevoModalPrecio" TextChanged="NuevoPrecioCambio"/>
+
+          <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,16">
+            <TextBlock x:Name="NuevoModalPreview" Text="Efectivo (42% desc): $0.00" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold" FontSize="12"/>
+          </Border>
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Cancelar" Click="CerrarModales" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="Guardar celular" Click="ConfirmarModalNuevo" Margin="0" Padding="18,10"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL 2: EDITAR CELULAR -->
+    <Grid x:Name="ModalEditar" Visibility="Collapsed" Background="#8A000000">
+      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="480" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <Grid Margin="0,0,0,16">
+            <StackPanel>
+              <TextBlock x:Name="EditModalTag" Text="CELULAR · 001" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+              <TextBlock Text="Modificar celular" FontSize="20" FontWeight="Bold" Margin="0,2,0,2"/>
+              <TextBlock Text="Modifica el nombre o precio de lista del equipo seleccionado" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
+            </StackPanel>
+            <Button Content="✕" Click="CerrarModales" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Foreground="{DynamicResource MutedBrush}" MinHeight="28" Padding="6,2" FontSize="16"/>
+          </Grid>
+
+          <TextBlock Text="Nombre del modelo" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+          <TextBox x:Name="EditModalNombre" MaxLength="100"/>
+
+          <TextBlock Text="Precio de lista (USD)" Foreground="{DynamicResource MutedBrush}" FontSize="12" FontWeight="SemiBold"/>
+          <TextBox x:Name="EditModalPrecio" TextChanged="EditarPrecioCambio"/>
+
+          <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,16">
+            <TextBlock x:Name="EditModalPreview" Text="Efectivo (42% desc): $0.00" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold" FontSize="12"/>
+          </Border>
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Cancelar" Click="CerrarModales" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="Guardar cambios" Click="ConfirmarModalEditar" Margin="0" Padding="18,10"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL 3: CONFIRMAR DESACTIVACIÓN -->
+    <Grid x:Name="ModalDesactivar" Visibility="Collapsed" Background="#8A000000">
+      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="450" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <Grid Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="⚠️" FontSize="22" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <StackPanel>
+                <TextBlock Text="¿Desactivar celular?" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Text="Se retirará del catálogo para nuevas ventas" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
+              </StackPanel>
+            </StackPanel>
+            <Button Content="✕" Click="CerrarModales" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Foreground="{DynamicResource MutedBrush}" MinHeight="28" Padding="6,2" FontSize="16"/>
+          </Grid>
+
+          <TextBlock Text="Estás a punto de desactivar:" Foreground="{DynamicResource TextBrush}" FontSize="13" Margin="0,0,0,4"/>
+          <TextBlock x:Name="ModalDesactivarNombre" Text="Celular Nova 256 GB" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
+          <TextBlock Text="Las facturas ya emitidas para este celular no se verán afectadas." Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,0,0,18"/>
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Cancelar" Click="CerrarModales" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="Sí, desactivar" Click="ConfirmarModalDesactivar" Background="{DynamicResource DangerBrush}" Foreground="White" Margin="0" Padding="18,10"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+  </Grid>
 </Window>

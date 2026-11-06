@@ -21,3 +21,4 @@ wsl docker exec examen_sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U s
 Write-Host ""
 Write-Host "¡Completado! Todos los clientes de prueba vuelven a calificar en BanQuito." -ForegroundColor Green
 Write-Host "Para un reinicio total de contenedores use: .\reiniciar-db.ps1 -Total" -ForegroundColor DarkGray
+
