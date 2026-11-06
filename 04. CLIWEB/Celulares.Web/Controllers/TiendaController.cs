@@ -10,6 +10,10 @@ public class TiendaController(ControladorTienda tienda) : Controller
     [HttpGet]
     public Task<IActionResult> Index() => Mostrar(new SolicitudFactura(), null);
 
+    [HttpGet]
+    public Task<IActionResult> Ventas([FromQuery] string? cedula) =>
+        MostrarVentas(new SolicitudFactura(), cedula, null);
+
     private bool EsAjax() =>
         Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
         Request.Headers.Accept.ToString().Contains("application/json");
@@ -98,15 +102,15 @@ public class TiendaController(ControladorTienda tienda) : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Vender([Bind(Prefix = "Venta")] SolicitudFactura venta)
     {
-        if (!ModelState.IsValid) return await Mostrar(venta, "Revise los datos de la venta.");
+        if (!ModelState.IsValid) return await MostrarVentas(venta, venta.Cedula, "Revise los datos de la venta.");
         try
         {
             var factura = await tienda.Facturar(venta);
-            return RedirectToAction(nameof(Factura), new { id = factura.Id });
+            return RedirectToAction(nameof(Factura), new { id = factura.Id, volverCedula = venta.Cedula });
         }
         catch (Exception error) when (EsErrorEsperado(error))
         {
-            return await Mostrar(venta, Mensaje(error) + " Si se cortó la conexión, reintente sin cambiar los datos.");
+            return await MostrarVentas(venta, venta.Cedula, Mensaje(error) + " Si se cortó la conexión, reintente sin cambiar los datos.");
         }
     }
 
@@ -121,39 +125,27 @@ public class TiendaController(ControladorTienda tienda) : Controller
         }
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> BuscarFacturas(string? cedula)
+    [HttpGet, HttpPost]
+    public IActionResult BuscarFacturas(string? cedula)
     {
-        try
-        {
-            var busqueda = cedula?.Trim() ?? "";
-            var facturas = await tienda.FacturasPorCedula(busqueda);
-            return View("Index", new PaginaTienda
-            {
-                Catalogo = await tienda.Catalogo(), Facturas = facturas,
-                CedulaBusqueda = busqueda, Venta = new SolicitudFactura()
-            });
-        }
-        catch (Exception error) when (EsErrorEsperado(error))
-        {
-            return await Mostrar(new SolicitudFactura(), Mensaje(error));
-        }
+        var busqueda = cedula?.Trim() ?? "";
+        return RedirectToAction(nameof(Ventas), new { cedula = busqueda });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Factura(int id)
+    public async Task<IActionResult> Factura(int id, [FromQuery] string? volverCedula)
     {
         try
         {
             var factura = await tienda.Factura(id);
             var cuotas = factura.FormaPago == "CREDITO_DIRECTO" && factura.Estado == "APROBADA"
                 ? await tienda.Amortizacion(id) : [];
-            return View(new PaginaFactura(factura, cuotas));
+            return View(new PaginaFactura(factura, cuotas, volverCedula));
         }
         catch (Exception error) when (EsErrorEsperado(error))
         {
             TempData["Error"] = Mensaje(error);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Ventas), new { cedula = volverCedula });
         }
     }
 
@@ -163,6 +155,34 @@ public class TiendaController(ControladorTienda tienda) : Controller
         try { catalogo = await tienda.Catalogo(); }
         catch (Exception e) when (EsErrorEsperado(e)) { error ??= Mensaje(e); }
         return View("Index", new PaginaTienda { Catalogo = catalogo, Venta = venta, Error = error });
+    }
+
+    private async Task<IActionResult> MostrarVentas(SolicitudFactura venta, string? cedula, string? error)
+    {
+        Celular[] catalogo = [];
+        IReadOnlyList<Factura> facturas = [];
+        var busqueda = cedula?.Trim();
+        var realizada = false;
+        try
+        {
+            catalogo = await tienda.Catalogo();
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                realizada = true;
+                facturas = await tienda.FacturasPorCedula(busqueda);
+            }
+        }
+        catch (Exception e) when (EsErrorEsperado(e)) { error ??= Mensaje(e); }
+
+        return View("Ventas", new PaginaVentas
+        {
+            Catalogo = catalogo,
+            Facturas = facturas,
+            Venta = venta,
+            CedulaBusqueda = busqueda,
+            Error = error,
+            BusquedaRealizada = realizada
+        });
     }
 
     private static bool EsErrorEsperado(Exception error) =>

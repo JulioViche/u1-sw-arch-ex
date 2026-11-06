@@ -11,4 +11,14 @@ public sealed class PaginaTienda
     public string? Error { get; init; }
 }
 
-public sealed record PaginaFactura(Factura Factura, IReadOnlyList<Cuota> Cuotas);
+public sealed class PaginaVentas
+{
+    public IReadOnlyList<Celular> Catalogo { get; init; } = [];
+    public IReadOnlyList<Factura> Facturas { get; init; } = [];
+    public SolicitudFactura Venta { get; init; } = new();
+    public string? CedulaBusqueda { get; init; }
+    public string? Error { get; init; }
+    public bool BusquedaRealizada { get; init; }
+}
+
+public sealed record PaginaFactura(Factura Factura, IReadOnlyList<Cuota> Cuotas, string? VolverCedula = null);

@@ -10,7 +10,21 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-    <header><a asp-controller="Tienda" asp-action="Index">CELULARES <span>GR09</span></a><div class="header-actions"><span>Comercializadora · REST</span><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a tema claro" aria-pressed="false">Tema claro</button></div></header>
+    <header>
+        <div class="header-left">
+            <a class="brand" asp-controller="Tienda" asp-action="Index">CELULARES <span>GR09</span></a>
+            <nav class="nav-links">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" 
+                   asp-controller="Tienda" asp-action="Index">📱 Catálogo</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Ventas" || ViewContext.RouteData.Values["action"]?.ToString() == "Factura" ? "active" : "")" 
+                   asp-controller="Tienda" asp-action="Ventas">💳 Ventas &amp; Facturas</a>
+            </nav>
+        </div>
+        <div class="header-actions">
+            <span class="api-status-badge">REST · Docker</span>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a tema claro" aria-pressed="false">Tema claro</button>
+        </div>
+    </header>
     <main>@RenderBody()</main>
     <script src="~/js/tema.js" defer></script>
     @await RenderSectionAsync("Scripts", required: false)

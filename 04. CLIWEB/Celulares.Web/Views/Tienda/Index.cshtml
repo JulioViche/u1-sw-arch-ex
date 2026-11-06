@@ -1,19 +1,44 @@
 @model PaginaTienda
 <section class="hero">
-    <div><span class="eyebrow">Comercializadora GR09</span><h1>Tu próximo celular, con cuentas claras.</h1><p>Selecciona del catálogo, revisa el pago y confirma cuando esté listo.</p></div>
-    <div class="hero-mark" aria-hidden="true">09</div>
+    <div>
+        <span class="eyebrow">Comercializadora GR09 · Administración</span>
+        <h1>Catálogo de Celulares</h1>
+        <p>Administra los modelos disponibles, actualiza precios, gestiona fotografías en base de datos y activa o desactiva equipos para la venta.</p>
+    </div>
+    <div class="hero-right-actions">
+        <a asp-action="Ventas" class="hero-cta-btn">💳 Ir a Ventas &amp; Facturación &rarr;</a>
+    </div>
 </section>
-@if (Model.Error is not null || TempData["Error"] is not null) { <p class="notice error" role="alert">@(Model.Error ?? TempData["Error"])</p> }
-@if (TempData["Mensaje"] is not null) { <p class="notice success" role="status">@TempData["Mensaje"]</p> }
 
-<div class="grid">
-    <section class="panel">
-        <div class="section-heading"><h2>Celulares disponibles</h2></div>
-        @if (Model.Catalogo.Count == 0) { <div class="empty" id="emptyCatalogo"><strong>Catálogo vacío</strong><p>Registra un celular para comenzar.</p></div> }
+@if (Model.Error is not null || TempData["Error"] is not null) { 
+    <p class="notice error" role="alert">@(Model.Error ?? TempData["Error"])</p> 
+}
+@if (TempData["Mensaje"] is not null) { 
+    <p class="notice success" role="status">@TempData["Mensaje"]</p> 
+}
+
+<div class="catalog-layout">
+    <section class="panel catalog-full-panel">
+        <div class="panel-header-row">
+            <div>
+                <span class="eyebrow">EQUIPOS DISPONIBLES</span>
+                <h2>Modelos en catálogo</h2>
+            </div>
+            <button type="button" class="primary btn-open-create" id="btnNuevoCelular">
+                ＋ Registrar nuevo celular
+            </button>
+        </div>
+
+        @if (Model.Catalogo.Count == 0) { 
+            <div class="empty" id="emptyCatalogo">
+                <strong>Catálogo vacío</strong>
+                <p>No hay celulares activos actualmente. Registra uno nuevo para comenzar.</p>
+            </div> 
+        }
         else {
-            <div class="catalog-list" id="listaCatalogo">
+            <div class="catalog-grid" id="listaCatalogo">
             @foreach (var celular in Model.Catalogo) {
-                <article class="catalog-item" id="card-celular-@celular.Id" data-id="@celular.Id">
+                <article class="catalog-card" id="card-celular-@celular.Id" data-id="@celular.Id">
                     <div class="product-photo" data-cell-id="@celular.Id">
                         <input type="file" id="file-@celular.Id" class="hidden-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" />
                         
@@ -35,15 +60,19 @@
                             <span>Actualizando...</span>
                         </div>
                     </div>
-                    <div class="catalog-copy">
+                    
+                    <div class="catalog-card-body">
                         <span class="catalog-id">CELULAR · @celular.Id.ToString("D3")</span>
                         <h3 class="card-nombre">@celular.Nombre</h3>
-                        <div style="margin: 0.35rem 0;">
+                        
+                        <div class="card-prices">
+                            <span class="price-label">Precio de lista:</span>
                             <strong class="price card-precio">@celular.Precio.ToString("C2")</strong>
-                            <small class="card-efectivo" style="display:block; color:var(--teal); font-size:0.83rem; font-weight:600; margin-top:0.2rem;">
-                                Efectivo 42% desc: @((celular.Precio * 0.58m).ToString("C2"))
-                            </small>
+                            <div class="card-cash-discount">
+                                Efectivo (42% desc): <strong>@((celular.Precio * 0.58m).ToString("C2"))</strong>
+                            </div>
                         </div>
+
                         <div class="catalog-actions">
                             <button class="btn-edit" type="button" 
                                     data-id="@celular.Id" 
@@ -62,62 +91,38 @@
             }
             </div>
         }
-        <details class="admin-form" id="detailsNuevo" style="margin-top: 1.25rem;">
-            <summary style="font-size: 0.95rem;">＋ Registrar nuevo celular en catálogo</summary>
-            <form asp-action="Guardar" method="post" id="formNuevoCelular" data-guard-submit style="margin-top: 0.8rem;">
-                @Html.AntiForgeryToken()
-                <label for="nombreCelular">Nombre del modelo</label>
-                <input id="nombreCelular" name="nombre" maxlength="100" placeholder="Ej: Celular Galaxy A54 128 GB" autocomplete="off" required />
-                <label for="precioCelular">Precio de lista (USD)</label>
-                <input id="precioCelular" name="precio" type="number" min="0.01" max="99999999.99" step="0.01" placeholder="Ej: 350.00" inputmode="decimal" required />
-                <button type="submit" class="primary" style="margin-top: 1rem;">Guardar celular</button>
-            </form>
-        </details>
-    </section>
-
-    <section class="panel sale-panel">
-        <div class="section-heading"><h2>Nueva venta</h2></div>
-        <p class="helper">Efectivo: 42% de descuento. Crédito directo: tasa anual 16,5%, plazo de 3 a 18 cuotas.</p>
-        <form asp-action="Vender" method="post" data-guard-submit data-confirm="¿Confirmar la venta con estos datos?">
-            <div asp-validation-summary="All" class="error" role="alert"></div>
-            <input asp-for="Venta.IdOperacion" type="hidden" />
-            <input asp-for="Venta.PrecioEsperado" type="hidden" />
-            <label asp-for="Venta.Cedula">Cédula del comprador</label><input asp-for="Venta.Cedula" maxlength="100" autocomplete="off" required />
-            <button id="consultarCredito" class="secondary" type="button">Consultar elegibilidad en BanQuito</button>
-            <p id="resultadoCredito" class="credit-result" role="status" aria-live="polite"></p>
-            <label asp-for="Venta.NombreCliente">Nombre del comprador</label><input asp-for="Venta.NombreCliente" maxlength="100" autocomplete="name" required />
-            <label asp-for="Venta.IdCelular">Celular</label>
-            <select asp-for="Venta.IdCelular" id="celularVenta" required>
-                <option value="">Selecciona un celular</option>
-                @foreach (var c in Model.Catalogo) { <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">@c.Nombre · @c.Precio.ToString("C2")</option> }
-            </select>
-            <div id="resumenPrecio" class="price-summary" role="status" aria-live="polite">Elige un celular para ver el total.</div>
-            <label asp-for="Venta.FormaPago">Forma de pago</label>
-            <select asp-for="Venta.FormaPago" id="formaPago"><option value="EFECTIVO">Efectivo</option><option value="CREDITO_DIRECTO">Crédito directo</option></select>
-            <div id="grupoCuotas"><label asp-for="Venta.NumeroCuotas">Número de cuotas</label><input asp-for="Venta.NumeroCuotas" id="numeroCuotas" type="number" min="3" max="18" inputmode="numeric" /></div>
-            <button class="primary wide" type="submit">Confirmar venta</button>
-        </form>
-    </section>
-
-    <section class="panel invoices-panel">
-        <div class="section-heading"><h2>Historial de compra</h2></div>
-        <p class="helper">Busca las últimas 50 facturas con la cédula exacta del comprador.</p>
-        <form asp-action="BuscarFacturas" method="post" data-guard-submit>
-            <label for="cedulaBusqueda">Cédula</label><input id="cedulaBusqueda" name="cedula" value="@Model.CedulaBusqueda" maxlength="100" autocomplete="off" required />
-            <button type="submit">Buscar facturas</button>
-        </form>
-        @if (Model.CedulaBusqueda is not null) {
-            @if (Model.Facturas.Count == 0) { <p class="empty-inline" role="status">No hay facturas para esta cédula.</p> }
-            else {
-                <div class="table-wrap"><table><thead><tr><th>Factura</th><th>Fecha</th><th>Celular</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>
-                @foreach (var factura in Model.Facturas) { <tr><td>#@factura.Id</td><td>@factura.Fecha.ToString("yyyy-MM-dd")</td><td>@factura.Celular</td><td>@factura.Total.ToString("C2")</td><td><span class="badge">@factura.Estado</span></td><td><a asp-action="Factura" asp-route-id="@factura.Id">Ver detalle</a></td></tr> }
-                </tbody></table></div>
-            }
-        }
     </section>
 </div>
 
-<!-- MODAL DEDICADO DE EDICIÓN -->
+<!-- MODAL PARA REGISTRAR NUEVO CELULAR -->
+<dialog id="modalNuevo" class="app-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <span class="catalog-id">NUEVO PRODUCTO</span>
+                <h3>Registrar nuevo celular</h3>
+                <p class="modal-subtitle">Agrega un nuevo modelo y precio al catálogo de la comercializadora</p>
+            </div>
+            <button type="button" class="modal-close" id="btnCerrarModalNuevo" aria-label="Cerrar">&times;</button>
+        </div>
+        <form asp-action="Guardar" method="post" id="formNuevoCelular" data-guard-submit>
+            @Html.AntiForgeryToken()
+            <div class="modal-body">
+                <label for="nuevoNombre">Nombre del modelo</label>
+                <input id="nuevoNombre" name="nombre" maxlength="100" placeholder="Ej: Celular Galaxy A54 128 GB" autocomplete="off" required />
+
+                <label for="nuevoPrecio">Precio de lista (USD)</label>
+                <input id="nuevoPrecio" name="precio" type="number" min="0.01" max="99999999.99" step="0.01" placeholder="Ej: 350.00" inputmode="decimal" required />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary" id="btnCancelarModalNuevo">Cancelar</button>
+                <button type="submit" class="primary">Guardar celular</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- MODAL DEDICADO DE EDICIÓN (SIN RECARGA NI SALTO DE SCROLL) -->
 <dialog id="modalEditar" class="app-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -153,7 +158,7 @@
                 <span class="modal-warning-icon" aria-hidden="true">⚠️</span>
                 <div>
                     <h3>¿Desactivar celular?</h3>
-                    <p class="modal-subtitle">Se retirará de la lista para nuevas ventas</p>
+                    <p class="modal-subtitle">Se retirará del catálogo para nuevas ventas</p>
                 </div>
             </div>
             <button type="button" class="modal-close" id="btnCerrarModalDesactivar" aria-label="Cerrar">&times;</button>
@@ -202,7 +207,19 @@
         }, 3200);
     }
 
-    // --- 3. MODAL DE EDICIÓN EXCLUSIVO (SIN RECARGA NI SALTO DE SCROLL) ---
+    // --- 3. MODAL REGISTRAR NUEVO CELULAR ---
+    const modalNuevo = document.getElementById('modalNuevo');
+    const btnNuevoCelular = document.getElementById('btnNuevoCelular');
+    if (btnNuevoCelular) {
+        btnNuevoCelular.addEventListener('click', () => {
+            modalNuevo.showModal();
+            document.getElementById('nuevoNombre').focus();
+        });
+    }
+    document.getElementById('btnCerrarModalNuevo')?.addEventListener('click', () => modalNuevo.close());
+    document.getElementById('btnCancelarModalNuevo')?.addEventListener('click', () => modalNuevo.close());
+
+    // --- 4. MODAL DE EDICIÓN EXCLUSIVO (SIN RECARGA NI SALTO DE SCROLL) ---
     const modalEditar = document.getElementById('modalEditar');
     const formEditarModal = document.getElementById('formEditarModal');
     const editModalTag = document.getElementById('editModalTag');
@@ -249,7 +266,7 @@
         const formData = new FormData();
         formData.append('id', id);
         formData.append('nombre', nombre);
-        formData.append('precio', precio.toFixed(2));
+        formData.append('precio', precio);
         formData.append('__RequestVerificationToken', getVerificationToken());
 
         try {
@@ -261,29 +278,34 @@
             const data = await resp.json();
             if (!resp.ok) throw new Error(data.error || 'Error al actualizar el celular.');
 
-            // Actualizar componente tarjeta en el DOM sin recargar la página
+            // Actualizar tarjeta en el DOM sin recargar la página
             const card = document.getElementById(`card-celular-${id}`);
             if (card) {
-                card.querySelector('.card-nombre').textContent = nombre;
-                card.querySelector('.card-precio').textContent = moneda.format(precio);
-                card.querySelector('.card-efectivo').textContent = `Efectivo 42% desc: ${moneda.format(precio * 0.58)}`;
+                const nombreEl = card.querySelector('.card-nombre');
+                const precioEl = card.querySelector('.card-precio');
+                const efectivoEl = card.querySelector('.card-cash-discount strong');
                 const btnEdit = card.querySelector('.btn-edit');
-                btnEdit.dataset.name = nombre;
-                btnEdit.dataset.price = precio.toFixed(2);
-                const btnDesactivar = card.querySelector('.btn-desactivar');
-                if (btnDesactivar) btnDesactivar.dataset.name = nombre;
-            }
 
-            // Actualizar opción en el selector de ventas
-            const option = document.querySelector(`#celularVenta option[value="${id}"]`);
-            if (option) {
-                option.textContent = `${nombre} · ${moneda.format(precio)}`;
-                option.dataset.precio = precio.toFixed(2);
-                actualizarPrecio();
+                if (nombreEl) nombreEl.textContent = nombre;
+                if (precioEl) precioEl.textContent = moneda.format(precio);
+                if (efectivoEl) efectivoEl.textContent = moneda.format(precio * 0.58);
+                if (btnEdit) {
+                    btnEdit.dataset.name = nombre;
+                    btnEdit.dataset.price = precio.toString();
+                }
+
+                // Efecto visual de resaltado temporal
+                card.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
+                card.style.borderColor = 'var(--teal)';
+                card.style.boxShadow = '0 0 20px rgba(82, 224, 210, 0.35)';
+                setTimeout(() => {
+                    card.style.borderColor = '';
+                    card.style.boxShadow = '';
+                }, 1600);
             }
 
             cerrarModalEditar();
-            mostrarToast('Celular actualizado con éxito.', 'success');
+            mostrarToast('Celular actualizado correctamente.', 'success');
         } catch (err) {
             mostrarToast(err.message, 'error');
         } finally {
@@ -292,20 +314,20 @@
         }
     });
 
-    // --- 4. MODAL DE DESACTIVACIÓN (REEMPLAZA EL ALERT DEL NAVEGADOR) ---
+    // --- 5. MODAL DE DESACTIVACIÓN ELEGANTE (SIN window.confirm) ---
     const modalDesactivar = document.getElementById('modalDesactivar');
     const desactivarNombreTexto = document.getElementById('desactivarNombreTexto');
     const btnConfirmarDesactivar = document.getElementById('btnConfirmarDesactivar');
-    let idParaDesactivar = null;
+    let celularIdADesactivar = null;
 
     function abrirModalDesactivar(id, nombre) {
-        idParaDesactivar = id;
+        celularIdADesactivar = id;
         desactivarNombreTexto.textContent = nombre;
         modalDesactivar.showModal();
     }
     function cerrarModalDesactivar() {
         modalDesactivar.close();
-        idParaDesactivar = null;
+        celularIdADesactivar = null;
     }
     document.getElementById('btnCerrarModalDesactivar')?.addEventListener('click', cerrarModalDesactivar);
     document.getElementById('btnCancelarModalDesactivar')?.addEventListener('click', cerrarModalDesactivar);
@@ -320,12 +342,12 @@
     enlazarBotonesDesactivar();
 
     btnConfirmarDesactivar.addEventListener('click', async () => {
-        if (!idParaDesactivar) return;
+        if (!celularIdADesactivar) return;
         btnConfirmarDesactivar.disabled = true;
         btnConfirmarDesactivar.textContent = 'Desactivando…';
 
         const formData = new FormData();
-        formData.append('id', idParaDesactivar);
+        formData.append('id', celularIdADesactivar);
         formData.append('__RequestVerificationToken', getVerificationToken());
 
         try {
@@ -337,24 +359,23 @@
             const data = await resp.json();
             if (!resp.ok) throw new Error(data.error || 'Error al desactivar el celular.');
 
-            // Animación suave de salida del componente sin recargar
-            const card = document.getElementById(`card-celular-${idParaDesactivar}`);
+            // Animación de salida y remoción del DOM
+            const card = document.getElementById(`card-celular-${celularIdADesactivar}`);
             if (card) {
-                card.style.transition = 'all .28s ease';
+                card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
                 card.style.opacity = '0';
-                card.style.transform = 'scale(0.95)';
-                setTimeout(() => card.remove(), 290);
-            }
-
-            // Quitar del select de ventas
-            const option = document.querySelector(`#celularVenta option[value="${idParaDesactivar}"]`);
-            if (option) {
-                option.remove();
-                actualizarPrecio();
+                card.style.transform = 'scale(0.92)';
+                setTimeout(() => {
+                    card.remove();
+                    const lista = document.getElementById('listaCatalogo');
+                    if (lista && lista.children.length === 0) {
+                        location.reload();
+                    }
+                }, 350);
             }
 
             cerrarModalDesactivar();
-            mostrarToast('Celular desactivado del catálogo.', 'success');
+            mostrarToast('Celular desactivado correctamente.', 'success');
         } catch (err) {
             mostrarToast(err.message, 'error');
         } finally {
@@ -363,20 +384,22 @@
         }
     });
 
-    // --- 5. CARGA DE FOTO DIRECTA AL CLIC EN EL SÍMBOLO ＋ O EN LA FOTO ---
+    // --- 6. GESTIÓN DIRECTA DE FOTOS EN CADA TARJETA ---
     function enlazarEventosFotos() {
-        document.querySelectorAll('.product-photo').forEach(container => {
-            const id = container.dataset.cellId;
-            const fileInput = container.querySelector('.hidden-file-input');
-            const placeholder = container.querySelector('[data-photo-placeholder]');
-            const wrapper = container.querySelector('.photo-wrapper');
-            const preview = container.querySelector('[data-photo-preview]');
-            const spinner = container.querySelector('.photo-loading-spinner');
-            const btnChange = container.querySelector('.btn-photo-action.change');
-            const btnDelete = container.querySelector('.btn-photo-action.delete');
+        document.querySelectorAll('.product-photo').forEach(photoContainer => {
+            const id = photoContainer.dataset.cellId;
+            const fileInput = photoContainer.querySelector('.hidden-file-input');
+            const placeholder = photoContainer.querySelector('.photo-placeholder');
+            const wrapper = photoContainer.querySelector('.photo-wrapper');
+            const preview = photoContainer.querySelector('[data-photo-preview]');
+            const btnChange = photoContainer.querySelector('.btn-photo-action.change');
+            const btnDelete = photoContainer.querySelector('.btn-photo-action.delete');
+            const spinner = photoContainer.querySelector('.photo-loading-spinner');
 
-            // Clic en el placeholder vacio o en el símbolo +
+            // Clic en el placeholder "+" abre directamente el explorador de archivos
             placeholder?.addEventListener('click', () => fileInput.click());
+
+            // Clic en cambiar foto
             btnChange?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 fileInput.click();
@@ -456,63 +479,9 @@
     }
     enlazarEventosFotos();
 
-    // --- 6. LOGICA DE VENTA Y CRÉDITO BANQUITO ---
-    const celular = document.getElementById('celularVenta');
-    const pago = document.getElementById('formaPago');
-    const cuotas = document.getElementById('numeroCuotas');
-    const precioEsperado = document.getElementById('Venta_PrecioEsperado');
-    const resumen = document.getElementById('resumenPrecio');
-
-    function actualizarPrecio() {
-        const option = celular.selectedOptions[0];
-        const valor = Number(option?.dataset.precio);
-        if (!valor) { precioEsperado.value = ''; resumen.textContent = 'Elige un celular para ver el total.'; return; }
-        precioEsperado.value = valor.toFixed(2);
-        if (pago.value === 'EFECTIVO') {
-            const total = Math.round(valor * 0.58 * 100) / 100;
-            resumen.textContent = `Precio ${moneda.format(valor)} · descuento 42% · total en efectivo ${moneda.format(total)}`;
-        } else resumen.textContent = `Precio financiado ${moneda.format(valor)} · interés anual 16,5% · 3 a 18 cuotas fijas.`;
-    }
-    function actualizarPago() {
-        const esCredito = pago.value === 'CREDITO_DIRECTO';
-        cuotas.disabled = !esCredito; cuotas.required = esCredito;
-        document.getElementById('grupoCuotas').hidden = !esCredito;
-        actualizarPrecio();
-    }
-    celular.addEventListener('change', actualizarPrecio);
-    pago.addEventListener('change', actualizarPago);
-    actualizarPago();
-
-    document.getElementById('consultarCredito').addEventListener('click', async event => {
-        const boton = event.currentTarget;
-        const resultado = document.getElementById('resultadoCredito');
-        const cedula = document.getElementById('Venta_Cedula').value.trim();
-        if (!cedula) { resultado.textContent = 'Ingrese la cédula para consultar.'; document.getElementById('Venta_Cedula').focus(); return; }
-        boton.disabled = true; resultado.textContent = 'Consultando BanQuito…';
-        try {
-            const response = await fetch(`@Url.Action("Elegibilidad", "Tienda")?cedula=${encodeURIComponent(cedula)}`, { headers: { 'Accept': 'application/json' } });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.mensaje || 'No se pudo comunicar con BanQuito.');
-            resultado.textContent = data.sujetoCredito
-                ? `Elegible · máximo ${moneda.format(data.montoMaximo)}. BanQuito vuelve a validar al confirmar.`
-                : `No elegible · ${data.motivo}`;
-            resultado.dataset.state = data.sujetoCredito ? 'ok' : 'bad';
-
-            // Autocompletar el nombre del cliente si BanQuito lo identificó
-            if (data.nombre && data.nombre.trim().length > 0) {
-                const inputNombre = document.getElementById('Venta_NombreCliente');
-                if (inputNombre) {
-                    inputNombre.value = data.nombre.trim();
-                    mostrarToast(`Cliente identificado: ${data.nombre.trim()}`, 'success');
-                }
-            }
-        } catch (error) { resultado.textContent = error.message; resultado.dataset.state = 'bad'; }
-        finally { boton.disabled = false; }
-    });
-
+    // Guard submit protection
     document.querySelectorAll('form[data-guard-submit]').forEach(form => form.addEventListener('submit', event => {
         if (!form.reportValidity()) { event.preventDefault(); return; }
-        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) { event.preventDefault(); return; }
         const button = form.querySelector('button[type="submit"]');
         if (button) { button.disabled = true; button.dataset.original = button.textContent; button.textContent = 'Procesando…'; }
     }));

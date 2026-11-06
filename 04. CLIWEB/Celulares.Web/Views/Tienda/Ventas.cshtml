@@ -1,0 +1,286 @@
+@model PaginaVentas
+<section class="hero">
+    <div>
+        <span class="eyebrow">Comercializadora GR09 · Facturación</span>
+        <h1>Gestión de Ventas y Facturación</h1>
+        <p>Registra ventas con descuento al contado o financiamiento directo con BanQuito, y consulta historiales de compra por cédula.</p>
+    </div>
+    <div class="hero-mark" aria-hidden="true">09</div>
+</section>
+
+@if (Model.Error is not null || TempData["Error"] is not null) { 
+    <p class="notice error" role="alert">@(Model.Error ?? TempData["Error"])</p> 
+}
+@if (TempData["Mensaje"] is not null) { 
+    <p class="notice success" role="status">@TempData["Mensaje"]</p> 
+}
+
+<div class="ventas-layout">
+    <!-- PANEL DE REGISTRO DE VENTA -->
+    <section class="panel sale-panel">
+        <div class="section-heading">
+            <span class="eyebrow">NUEVA TRANSACCIÓN</span>
+            <h2>Registrar venta de celular</h2>
+        </div>
+        <p class="helper">
+            <strong>Efectivo:</strong> 42% de descuento inmediato.<br />
+            <strong>Crédito BanQuito:</strong> tasa 16,5% anual, financiado de 3 a 18 cuotas.
+        </p>
+
+        <form asp-action="Vender" method="post" data-guard-submit data-confirm="¿Confirmar la venta con estos datos?">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="error" role="alert"></div>
+            <input asp-for="Venta.IdOperacion" type="hidden" />
+            <input asp-for="Venta.PrecioEsperado" type="hidden" />
+
+            <div class="form-group-cedula">
+                <label asp-for="Venta.Cedula">Cédula del comprador</label>
+                <div class="input-with-button">
+                    <input asp-for="Venta.Cedula" maxlength="100" placeholder="Ej: 0102030405" autocomplete="off" required />
+                    <button id="consultarCredito" class="secondary" type="button" title="Consultar en BanQuito">
+                        🔍 Consultar BanQuito
+                    </button>
+                </div>
+            </div>
+            <p id="resultadoCredito" class="credit-result" role="status" aria-live="polite">
+                Ingrese la cédula y consulte si es sujeto a crédito en BanQuito.
+            </p>
+
+            <label asp-for="Venta.NombreCliente">Nombre del comprador</label>
+            <input asp-for="Venta.NombreCliente" maxlength="100" placeholder="Nombre completo del cliente" autocomplete="name" required />
+
+            <label asp-for="Venta.IdCelular">Celular a adquirir</label>
+            <select asp-for="Venta.IdCelular" id="celularVenta" required>
+                <option value="">Selecciona un celular del catálogo</option>
+                @foreach (var c in Model.Catalogo) { 
+                    <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                        @c.Nombre · @c.Precio.ToString("C2")
+                    </option> 
+                }
+            </select>
+
+            <div id="resumenPrecio" class="price-summary" role="status" aria-live="polite">
+                Elige un celular para calcular el total.
+            </div>
+
+            <label asp-for="Venta.FormaPago">Forma de pago</label>
+            <select asp-for="Venta.FormaPago" id="formaPago">
+                <option value="EFECTIVO">Efectivo (Descuento del 42%)</option>
+                <option value="CREDITO_DIRECTO">Crédito directo BanQuito</option>
+            </select>
+
+            <div id="grupoCuotas">
+                <label asp-for="Venta.NumeroCuotas">Número de cuotas (3 a 18 meses)</label>
+                <input asp-for="Venta.NumeroCuotas" id="numeroCuotas" type="number" min="3" max="18" placeholder="Ej: 12" inputmode="numeric" />
+            </div>
+
+            <button class="primary wide btn-confirmar-venta" type="submit">
+                ✓ Confirmar y emitir factura
+            </button>
+        </form>
+    </section>
+
+    <!-- PANEL DE HISTORIAL DE COMPRAS POR CÉDULA -->
+    <section class="panel invoices-panel" id="seccionHistorial">
+        <div class="section-heading">
+            <span class="eyebrow">CONSULTAS</span>
+            <h2>Historial de compras por cédula</h2>
+        </div>
+        <p class="helper">Ingresa la cédula del comprador para consultar todas sus facturas históricas emitidas por la comercializadora.</p>
+
+        <!-- FORMULARIO CON GET: MANTIENE LA URI LIMPIA Y COMPARTIBLE -->
+        <form asp-action="Ventas" method="get" class="search-form">
+            <div class="search-input-group">
+                <label for="cedulaBusqueda">Cédula del cliente</label>
+                <div class="search-field-row">
+                    <input id="cedulaBusqueda" name="cedula" value="@Model.CedulaBusqueda" maxlength="100" placeholder="Ej: 0102030405" autocomplete="off" required />
+                    <button type="submit" class="primary">🔎 Buscar facturas</button>
+                    @if (!string.IsNullOrWhiteSpace(Model.CedulaBusqueda)) {
+                        <a asp-action="Ventas" class="btn-clear-filter" title="Limpiar filtro">✕ Limpiar</a>
+                    }
+                </div>
+            </div>
+        </form>
+
+        @if (Model.BusquedaRealizada) {
+            <div class="search-results-area">
+                @if (Model.Facturas.Count == 0) { 
+                    <div class="empty-state">
+                        <span class="empty-icon">📂</span>
+                        <p class="empty-title">Sin facturas encontradas</p>
+                        <p class="empty-desc">No existen compras registradas para la cédula <strong>@Model.CedulaBusqueda</strong>.</p>
+                    </div> 
+                }
+                else {
+                    <div class="results-header">
+                        <span>Se encontraron <strong>@Model.Facturas.Count</strong> factura(s) para la cédula <strong>@Model.CedulaBusqueda</strong></span>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="facturas-table">
+                            <thead>
+                                <tr>
+                                    <th># Factura</th>
+                                    <th>Fecha</th>
+                                    <th>Celular</th>
+                                    <th>Pago</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th style="text-align: right;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var factura in Model.Facturas) { 
+                                <tr>
+                                    <td>
+                                        <span class="invoice-number-chip">#@factura.Id</span>
+                                    </td>
+                                    <td>@factura.Fecha.ToString("yyyy-MM-dd")</td>
+                                    <td><strong>@factura.Celular</strong></td>
+                                    <td>
+                                        <span class="payment-chip @(factura.FormaPago == "EFECTIVO" ? "cash" : "credit")">
+                                            @(factura.FormaPago == "EFECTIVO" ? "Efectivo" : "Crédito BanQuito")
+                                        </span>
+                                    </td>
+                                    <td class="table-total-cell">@factura.Total.ToString("C2")</td>
+                                    <td>
+                                        <span class="status-pill @factura.Estado.ToLowerInvariant()">
+                                            @factura.Estado
+                                        </span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <a class="btn-table-action" asp-action="Factura" asp-route-id="@factura.Id" asp-route-volverCedula="@Model.CedulaBusqueda">
+                                            Ver detalle &rarr;
+                                        </a>
+                                    </td>
+                                </tr> 
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        } else {
+            <div class="search-hint">
+                <span class="hint-icon">💡</span>
+                <p>Escribe una cédula arriba y presiona <strong>Buscar facturas</strong> para consultar los comprobantes asociados.</p>
+            </div>
+        }
+    </section>
+</div>
+
+<!-- CONTENEDOR DE TOASTS FLOTANTES -->
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+@section Scripts {
+<script>
+(() => {
+    const moneda = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
+
+    // --- SISTEMA DE TOASTS ---
+    const toastContainer = document.getElementById('toastContainer');
+    function mostrarToast(mensaje, tipo = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-msg ${tipo}`;
+        toast.innerHTML = `<span>${tipo === 'success' ? '✓' : '✕'}</span> <span>${mensaje}</span>`;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px) scale(0.95)';
+            setTimeout(() => toast.remove(), 260);
+        }, 3400);
+    }
+
+    // --- LÓGICA DE VENTA Y CRÉDITO BANQUITO ---
+    const celular = document.getElementById('celularVenta');
+    const pago = document.getElementById('formaPago');
+    const cuotas = document.getElementById('numeroCuotas');
+    const precioEsperado = document.getElementById('Venta_PrecioEsperado');
+    const resumen = document.getElementById('resumenPrecio');
+
+    function actualizarPrecio() {
+        const option = celular.selectedOptions[0];
+        const valor = Number(option?.dataset.precio);
+        if (!valor) { 
+            precioEsperado.value = ''; 
+            resumen.textContent = 'Elige un celular para ver el total.'; 
+            return; 
+        }
+        precioEsperado.value = valor.toFixed(2);
+        if (pago.value === 'EFECTIVO') {
+            const total = Math.round(valor * 0.58 * 100) / 100;
+            resumen.textContent = `Precio ${moneda.format(valor)} · descuento 42% · Total en efectivo: ${moneda.format(total)}`;
+        } else {
+            resumen.textContent = `Precio financiado ${moneda.format(valor)} · interés anual 16,5% · 3 a 18 cuotas mensuales fijas.`;
+        }
+    }
+
+    function actualizarPago() {
+        const esCredito = pago.value === 'CREDITO_DIRECTO';
+        cuotas.disabled = !esCredito; 
+        cuotas.required = esCredito;
+        document.getElementById('grupoCuotas').hidden = !esCredito;
+        actualizarPrecio();
+    }
+
+    celular.addEventListener('change', actualizarPrecio);
+    pago.addEventListener('change', actualizarPago);
+    actualizarPago();
+
+    // Consultar BanQuito y Autocompletar Comprador
+    document.getElementById('consultarCredito').addEventListener('click', async event => {
+        const boton = event.currentTarget;
+        const resultado = document.getElementById('resultadoCredito');
+        const cedula = document.getElementById('Venta_Cedula').value.trim();
+        if (!cedula) { 
+            resultado.textContent = 'Ingrese la cédula para consultar.'; 
+            document.getElementById('Venta_Cedula').focus(); 
+            return; 
+        }
+
+        boton.disabled = true; 
+        resultado.textContent = 'Consultando BanQuito…';
+        try {
+            const response = await fetch(`@Url.Action("Elegibilidad", "Tienda")?cedula=${encodeURIComponent(cedula)}`, { 
+                headers: { 'Accept': 'application/json' } 
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.mensaje || 'No se pudo comunicar con BanQuito.');
+
+            resultado.textContent = data.sujetoCredito
+                ? `Elegible en BanQuito · Monto máximo: ${moneda.format(data.montoMaximo)}`
+                : `No elegible · ${data.motivo}`;
+            resultado.dataset.state = data.sujetoCredito ? 'ok' : 'bad';
+
+            // Autocompletar el nombre del cliente si BanQuito lo identificó
+            if (data.nombre && data.nombre.trim().length > 0) {
+                const inputNombre = document.getElementById('Venta_NombreCliente');
+                if (inputNombre) {
+                    inputNombre.value = data.nombre.trim();
+                    mostrarToast(`Cliente identificado: ${data.nombre.trim()}`, 'success');
+                }
+            } else if (data.sujetoCredito) {
+                mostrarToast(`Cliente elegible con cupo de ${moneda.format(data.montoMaximo)}`, 'success');
+            }
+        } catch (error) { 
+            resultado.textContent = error.message; 
+            resultado.dataset.state = 'bad'; 
+            mostrarToast(error.message, 'error');
+        } finally { 
+            boton.disabled = false; 
+        }
+    });
+
+    // Guard Submit Protection
+    document.querySelectorAll('form[data-guard-submit]').forEach(form => form.addEventListener('submit', event => {
+        if (!form.reportValidity()) { event.preventDefault(); return; }
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) { event.preventDefault(); return; }
+        const button = form.querySelector('button[type="submit"]');
+        if (button) { 
+            button.disabled = true; 
+            button.dataset.original = button.textContent; 
+            button.textContent = 'Procesando…'; 
+        }
+    }));
+})();
+</script>
+}

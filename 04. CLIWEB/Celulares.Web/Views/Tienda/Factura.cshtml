@@ -1,20 +1,220 @@
 @model PaginaFactura
-<a class="back-link" asp-action="Index">← Volver a celulares</a>
-<section class="hero invoice-hero"><div><span class="eyebrow">COMPROBANTE · @Model.Factura.Fecha.ToString("yyyy-MM-dd")</span><h1>Factura #@Model.Factura.Id</h1><p>La operación quedó registrada en la comercializadora.</p></div><span class="badge state-badge">@Model.Factura.Estado</span></section>
-<section class="panel invoice-detail">
-    <div class="invoice-grid">
-        <div><span class="eyebrow">COMPRADOR</span><p><strong>@Model.Factura.NombreCliente</strong><br />Cédula @Model.Factura.Cedula</p></div>
-        <div><span class="eyebrow">CELULAR</span><p><strong>@Model.Factura.Celular</strong><br />@Model.Factura.FormaPago</p></div>
+@{
+    var volverCedula = !string.IsNullOrWhiteSpace(Model.VolverCedula) ? Model.VolverCedula : Model.Factura.Cedula;
+    var esCredito = Model.Factura.FormaPago == "CREDITO_DIRECTO";
+    var esAprobada = Model.Factura.Estado == "APROBADA";
+    var esRechazada = Model.Factura.Estado == "RECHAZADA";
+    var esPendiente = Model.Factura.Estado == "PENDIENTE";
+}
+
+<div class="invoice-page-container">
+    <!-- BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES -->
+    <div class="invoice-top-nav">
+        <a class="back-link-stylish" asp-action="Ventas" asp-route-cedula="@volverCedula">
+            &larr; Volver a facturas (@volverCedula)
+        </a>
+        <div class="invoice-actions-right">
+            <a class="nav-ghost-link" asp-action="Index">📱 Catálogo de celulares</a>
+            <button type="button" class="btn-print" onclick="window.print()">
+                🖨️ Imprimir comprobante
+            </button>
+        </div>
     </div>
-    <div class="amounts"><p>Precio de lista <strong>@Model.Factura.Precio.ToString("C2")</strong></p><p>Descuento <strong>@Model.Factura.Descuento.ToString("C2")</strong></p><p class="grand-total">Total <strong>@Model.Factura.Total.ToString("C2")</strong></p></div>
-    @if (Model.Factura.FormaPago == "CREDITO_DIRECTO" && Model.Cuotas.Count > 0) {
-        <div class="section-heading"><span class="eyebrow">PLAN DE PAGOS</span><h2>Amortización</h2></div>
-        <div class="table-wrap"><table><thead><tr><th>Cuota</th><th>Fecha</th><th>Valor</th><th>Interés</th><th>Capital</th><th>Saldo</th></tr></thead><tbody>
-        @foreach (var cuota in Model.Cuotas) { <tr><td>@cuota.NumeroCuota</td><td>@cuota.FechaPago.ToString("yyyy-MM-dd")</td><td>@cuota.ValorCuota.ToString("C2")</td><td>@cuota.InteresPagado.ToString("C2")</td><td>@cuota.CapitalPagado.ToString("C2")</td><td>@cuota.Saldo.ToString("C2")</td></tr> }
-        </tbody></table></div>
-    } else if (Model.Factura.FormaPago == "CREDITO_DIRECTO" && Model.Factura.Estado == "PENDIENTE") {
-        <p class="notice" role="status">El crédito está pendiente de confirmación de BanQuito. Consulte la factura nuevamente.</p>
-    } else if (Model.Factura.FormaPago == "CREDITO_DIRECTO" && Model.Factura.Estado == "RECHAZADA") {
-        <p class="notice error" role="alert">BanQuito rechazó la venta. No se emitió un crédito.</p>
-    }
-</section>
+
+    <!-- TARJETA PRINCIPAL TIPO VOUCHER / COMPROBANTE PREMIUM -->
+    <article class="invoice-voucher">
+        <!-- CABECERA DEL COMPROBANTE -->
+        <header class="voucher-header">
+            <div class="voucher-brand">
+                <span class="voucher-eyebrow">COMERCIALIZADORA DE CELULARES · GR09</span>
+                <h1 class="voucher-title">Factura Electrónica <span class="voucher-id">#@Model.Factura.Id</span></h1>
+                <p class="voucher-date">
+                    Emisión: @Model.Factura.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy · HH:mm", new System.Globalization.CultureInfo("es-EC"))
+                </p>
+            </div>
+            <div class="voucher-status-badge @Model.Factura.Estado.ToLowerInvariant()">
+                @if (esAprobada) {
+                    <span class="status-icon">✓</span>
+                    <span class="status-text">APROBADA</span>
+                } else if (esRechazada) {
+                    <span class="status-icon">✕</span>
+                    <span class="status-text">RECHAZADA</span>
+                } else {
+                    <span class="status-icon">⏳</span>
+                    <span class="status-text">PENDIENTE</span>
+                }
+            </div>
+        </header>
+
+        <!-- CINTILLO DE IDENTIFICADORES TÉCNICOS -->
+        <div class="voucher-meta-ribbon">
+            <div class="meta-item">
+                <span class="meta-label">ID OPERACIÓN:</span>
+                <code class="meta-code" title="@Model.Factura.IdOperacion">@Model.Factura.IdOperacion</code>
+            </div>
+            @if (Model.Factura.CreditoId.HasValue) {
+                <div class="meta-item">
+                    <span class="meta-label">BANQUITO CRÉDITO:</span>
+                    <span class="meta-badge-credito">#@Model.Factura.CreditoId</span>
+                </div>
+            }
+        </div>
+
+        <!-- GRID DE INFORMACIÓN (CLIENTE Y PRODUCTO) -->
+        <div class="voucher-info-grid">
+            <!-- TARJETA CLIENTE -->
+            <div class="info-card client-card">
+                <div class="info-card-header">
+                    <span class="info-icon">👤</span>
+                    <h3>Datos del Comprador</h3>
+                </div>
+                <div class="info-card-body">
+                    <p class="client-name">@Model.Factura.NombreCliente</p>
+                    <p class="client-detail">
+                        <span class="field-label">Cédula:</span> 
+                        <strong>@Model.Factura.Cedula</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- TARJETA PRODUCTO Y PAGO -->
+            <div class="info-card product-card">
+                <div class="info-card-header">
+                    <span class="info-icon">📱</span>
+                    <h3>Producto y Método de Pago</h3>
+                </div>
+                <div class="info-card-body">
+                    <p class="product-name">@Model.Factura.Celular</p>
+                    <div class="payment-method-row">
+                        <span class="field-label">Modalidad:</span>
+                        @if (Model.Factura.FormaPago == "EFECTIVO") {
+                            <span class="payment-badge cash">
+                                💵 Efectivo de contado (42% desc aplicado)
+                            </span>
+                        } else {
+                            <span class="payment-badge credit">
+                                💳 Crédito directo BanQuito (@(Model.Factura.NumeroCuotas ?? Model.Cuotas.Count) cuotas fijas)
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DESGLOSE ECONÓMICO FINANCIERO -->
+        <div class="voucher-financials">
+            <div class="financial-box">
+                <div class="fin-row">
+                    <span class="fin-label">Precio de lista del celular</span>
+                    <span class="fin-value">@Model.Factura.Precio.ToString("C2")</span>
+                </div>
+                @if (Model.Factura.Descuento > 0) {
+                    <div class="fin-row discount-row">
+                        <span class="fin-label">Descuento promocional en efectivo (42%)</span>
+                        <span class="fin-value discount-val">-@Model.Factura.Descuento.ToString("C2")</span>
+                    </div>
+                } else {
+                    <div class="fin-row">
+                        <span class="fin-label">Descuento</span>
+                        <span class="fin-value">$0.00</span>
+                    </div>
+                }
+                <div class="fin-divider"></div>
+                <div class="fin-row total-row">
+                    <div>
+                        <span class="total-label">TOTAL FACTURADO</span>
+                        <small class="total-caption">Valor total de la operación comercial</small>
+                    </div>
+                    <span class="total-amount">@Model.Factura.Total.ToString("C2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAN DE AMORTIZACIÓN BANQUITO (EN VENTAS A CRÉDITO) -->
+        @if (esCredito && Model.Cuotas.Count > 0) {
+            <section class="voucher-amortization">
+                <div class="amortization-header">
+                    <div>
+                        <span class="eyebrow">CRÉDITO FINANCIERO</span>
+                        <h2>Tabla de Amortización Francesa (BanQuito)</h2>
+                        <p class="amortization-caption">
+                            Tasa de interés pactada del 16,5% anual. Cuotas mensuales fijas con saldo decreciente.
+                        </p>
+                    </div>
+                    <div class="amortization-pill-badge">
+                        @(Model.Cuotas.Count - 1) Meses plazo
+                    </div>
+                </div>
+
+                <div class="table-wrap custom-table-wrap">
+                    <table class="amortization-table">
+                        <thead>
+                            <tr>
+                                <th>Cuota</th>
+                                <th>Fecha vencimiento</th>
+                                <th style="text-align: right;">Valor cuota</th>
+                                <th style="text-align: right;">Interés</th>
+                                <th style="text-align: right;">Capital amortizado</th>
+                                <th style="text-align: right;">Saldo deudor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var cuota in Model.Cuotas) { 
+                            <tr class="@(cuota.NumeroCuota == 0 ? "initial-fee-row" : "")">
+                                <td>
+                                    @if (cuota.NumeroCuota == 0) {
+                                        <span class="cuota-chip zero">0 · Inicio</span>
+                                    } else {
+                                        <span class="cuota-chip">Cuota @cuota.NumeroCuota</span>
+                                    }
+                                </td>
+                                <td>@cuota.FechaPago.ToString("yyyy-MM-dd")</td>
+                                <td style="text-align: right; font-weight: 600;">@cuota.ValorCuota.ToString("C2")</td>
+                                <td style="text-align: right; color: var(--gold);">@cuota.InteresPagado.ToString("C2")</td>
+                                <td style="text-align: right; color: var(--teal);">@cuota.CapitalPagado.ToString("C2")</td>
+                                <td style="text-align: right; font-weight: 700;">@cuota.Saldo.ToString("C2")</td>
+                            </tr> 
+                        }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2"><strong>TOTALES DEL FINANCIAMIENTO</strong></td>
+                                <td style="text-align: right;">
+                                    <strong>@Model.Cuotas.Where(c => c.NumeroCuota > 0).Sum(c => c.ValorCuota).ToString("C2")</strong>
+                                </td>
+                                <td style="text-align: right; color: var(--gold);">
+                                    <strong>@Model.Cuotas.Where(c => c.NumeroCuota > 0).Sum(c => c.InteresPagado).ToString("C2")</strong>
+                                </td>
+                                <td style="text-align: right; color: var(--teal);">
+                                    <strong>@Model.Cuotas.Where(c => c.NumeroCuota > 0).Sum(c => c.CapitalPagado).ToString("C2")</strong>
+                                </td>
+                                <td style="text-align: right;">—</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        } else if (esCredito && esPendiente) {
+            <div class="voucher-notice warning">
+                <span class="notice-icon">⏳</span>
+                <div>
+                    <strong>Crédito en proceso</strong>
+                    <p>La operación está pendiente de resolución final por BanQuito. Consulta la factura nuevamente para actualizar el estado.</p>
+                </div>
+            </div>
+        } else if (esCredito && esRechazada) {
+            <div class="voucher-notice danger">
+                <span class="notice-icon">✕</span>
+                <div>
+                    <strong>Crédito rechazado</strong>
+                    <p>BanQuito no autorizó la operación de crédito. No se emitió tabla de amortización ni pagaré bancario.</p>
+                </div>
+            </div>
+        }
+
+        <!-- PIE DEL COMPROBANTE -->
+        <footer class="voucher-footer">
+            <p>Comercializadora de Celulares GR09 · Sistema de Facturación Integrado · Todos los derechos reservados.</p>
+        </footer>
+    </article>
+</div>
