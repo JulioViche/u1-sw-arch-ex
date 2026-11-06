@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="MainTheme" parent="Maui.MainTheme">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+    <item name="android:colorAccent">#52E0D2</item>
+    <item name="android:windowLightStatusBar">false</item>
+    <item name="android:windowBackground">#0B1020</item>
+  </style>
+</resources>

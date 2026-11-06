@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080d18" />
+    <meta name="description" content="Comercializadora de celulares GR09. Catálogo, facturación y crédito BanQuito." />
+    <title>Celulares · GR09</title>
+    <script>try { document.documentElement.dataset.theme = localStorage.getItem("celulares-tema") || "oscuro"; } catch { document.documentElement.dataset.theme = "oscuro"; }</script>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header><a asp-controller="Tienda" asp-action="Index">CELULARES <span>GR09</span></a><div class="header-actions"><span>Comercializadora · REST</span><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a tema claro" aria-pressed="false">Tema claro</button></div></header>
+    <main>@RenderBody()</main>
+    <script src="~/js/tema.js" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

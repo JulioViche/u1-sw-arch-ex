@@ -1,0 +1,187 @@
+@model PaginaTienda
+<section class="hero">
+    <div><span class="eyebrow">Comercializadora GR09</span><h1>Tu próximo celular, con cuentas claras.</h1><p>Selecciona del catálogo, revisa el pago y confirma cuando esté listo.</p></div>
+    <div class="hero-mark" aria-hidden="true">09</div>
+</section>
+@if (Model.Error is not null || TempData["Error"] is not null) { <p class="notice error" role="alert">@(Model.Error ?? TempData["Error"])</p> }
+@if (TempData["Mensaje"] is not null) { <p class="notice success" role="status">@TempData["Mensaje"]</p> }
+
+<div class="grid">
+    <section class="panel">
+        <div class="section-heading"><h2>Celulares disponibles</h2></div>
+        @if (Model.Catalogo.Count == 0) { <div class="empty"><strong>Catálogo vacío</strong><p>Registra un celular para comenzar.</p></div> }
+        else {
+            <div class="catalog-list">
+            @foreach (var celular in Model.Catalogo) {
+                <article class="catalog-item">
+                    <div class="product-photo">
+                        @if (celular.ImagenUrl is not null) { <img data-photo-preview src="@celular.ImagenUrl" alt="Foto de @celular.Nombre" loading="lazy" /> }
+                        else { <div class="photo-placeholder" data-photo-placeholder><span aria-hidden="true">＋</span><strong>Sin foto</strong><small>JPG, PNG o WebP · máximo 5 MB</small></div><img data-photo-preview alt="Vista previa de @celular.Nombre" hidden /> }
+                    </div>
+                    <div class="catalog-copy">
+                        <span class="catalog-id">CELULAR · @celular.Id.ToString("D3")</span><h3>@celular.Nombre</h3><strong class="price">@celular.Precio.ToString("C2")</strong>
+                        <details class="photo-editor"><summary>@(celular.ImagenUrl is null ? "Cargar foto" : "Cambiar foto")</summary>
+                            <form asp-action="GuardarImagen" method="post" enctype="multipart/form-data" data-guard-submit data-image-form>
+                                <input type="hidden" name="id" value="@celular.Id" />
+                                <label for="foto-@celular.Id">Foto del celular</label>
+                                <input id="foto-@celular.Id" name="archivo" type="file" accept="image/jpeg,image/png,image/webp" required />
+                                <small>Se guarda en SQL Server. Formatos JPEG, PNG y WebP.</small>
+                                <button type="submit">@(celular.ImagenUrl is null ? "Guardar foto" : "Reemplazar foto")</button>
+                            </form>
+                            @if (celular.ImagenUrl is not null) {
+                                <form asp-action="QuitarImagen" method="post" data-guard-submit data-confirm="¿Eliminar la foto de @celular.Nombre?">
+                                    <input type="hidden" name="id" value="@celular.Id" /><button class="secondary" type="submit">Quitar foto</button>
+                                </form>
+                            }
+                        </details>
+                        <div class="catalog-actions">
+                            <button class="secondary edit" type="button" data-id="@celular.Id" data-name="@celular.Nombre" data-price="@celular.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">Editar datos</button>
+                            <form asp-action="Eliminar" method="post" data-guard-submit data-confirm="¿Desactivar @celular.Nombre?">
+                                <input type="hidden" name="id" value="@celular.Id" /><button class="ghost" type="submit">Desactivar</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            }
+            </div>
+        }
+        <details class="admin-form"><summary>Agregar o editar celular</summary>
+            <form asp-action="Guardar" method="post" data-guard-submit>
+                <input id="catalogoId" name="id" type="hidden" />
+                <label for="nombreCelular">Nombre</label><input id="nombreCelular" name="nombre" maxlength="100" autocomplete="off" required />
+                <label for="precioCelular">Precio de lista · USD</label><input id="precioCelular" name="precio" type="number" min="0.01" max="99999999.99" step="0.01" inputmode="decimal" required />
+                <div class="inline-actions"><button type="submit">Guardar celular</button><button id="limpiarCatalogo" class="secondary" type="button">Nuevo</button></div>
+            </form>
+        </details>
+    </section>
+
+    <section class="panel sale-panel">
+        <div class="section-heading"><h2>Nueva venta</h2></div>
+        <p class="helper">Efectivo: 42% de descuento. Crédito directo: tasa anual 16,5%, plazo de 3 a 18 cuotas.</p>
+        <form asp-action="Vender" method="post" data-guard-submit data-confirm="¿Confirmar la venta con estos datos?">
+            <div asp-validation-summary="All" class="error" role="alert"></div>
+            <input asp-for="Venta.IdOperacion" type="hidden" />
+            <input asp-for="Venta.PrecioEsperado" type="hidden" />
+            <label asp-for="Venta.Cedula">Cédula del comprador</label><input asp-for="Venta.Cedula" maxlength="100" autocomplete="off" required />
+            <button id="consultarCredito" class="secondary" type="button">Consultar elegibilidad en BanQuito</button>
+            <p id="resultadoCredito" class="credit-result" role="status" aria-live="polite"></p>
+            <label asp-for="Venta.NombreCliente">Nombre del comprador</label><input asp-for="Venta.NombreCliente" maxlength="100" autocomplete="name" required />
+            <label asp-for="Venta.IdCelular">Celular</label>
+            <select asp-for="Venta.IdCelular" id="celularVenta" required>
+                <option value="">Selecciona un celular</option>
+                @foreach (var c in Model.Catalogo) { <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">@c.Nombre · @c.Precio.ToString("C2")</option> }
+            </select>
+            <div id="resumenPrecio" class="price-summary" role="status" aria-live="polite">Elige un celular para ver el total.</div>
+            <label asp-for="Venta.FormaPago">Forma de pago</label>
+            <select asp-for="Venta.FormaPago" id="formaPago"><option value="EFECTIVO">Efectivo</option><option value="CREDITO_DIRECTO">Crédito directo</option></select>
+            <div id="grupoCuotas"><label asp-for="Venta.NumeroCuotas">Número de cuotas</label><input asp-for="Venta.NumeroCuotas" id="numeroCuotas" type="number" min="3" max="18" inputmode="numeric" /></div>
+            <button class="primary wide" type="submit">Confirmar venta</button>
+        </form>
+    </section>
+
+    <section class="panel invoices-panel">
+        <div class="section-heading"><h2>Historial de compra</h2></div>
+        <p class="helper">Busca las últimas 50 facturas con la cédula exacta del comprador.</p>
+        <form asp-action="BuscarFacturas" method="post" data-guard-submit>
+            <label for="cedulaBusqueda">Cédula</label><input id="cedulaBusqueda" name="cedula" value="@Model.CedulaBusqueda" maxlength="100" autocomplete="off" required />
+            <button type="submit">Buscar facturas</button>
+        </form>
+        @if (Model.CedulaBusqueda is not null) {
+            @if (Model.Facturas.Count == 0) { <p class="empty-inline" role="status">No hay facturas para esta cédula.</p> }
+            else {
+                <div class="table-wrap"><table><thead><tr><th>Factura</th><th>Fecha</th><th>Celular</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>
+                @foreach (var factura in Model.Facturas) { <tr><td>#@factura.Id</td><td>@factura.Fecha.ToString("yyyy-MM-dd")</td><td>@factura.Celular</td><td>@factura.Total.ToString("C2")</td><td><span class="badge">@factura.Estado</span></td><td><a asp-action="Factura" asp-route-id="@factura.Id">Ver detalle</a></td></tr> }
+                </tbody></table></div>
+            }
+        }
+    </section>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    const catalogoId = document.getElementById('catalogoId');
+    const nombre = document.getElementById('nombreCelular');
+    const precio = document.getElementById('precioCelular');
+    document.querySelectorAll('.edit').forEach(button => button.addEventListener('click', () => {
+        catalogoId.value = button.dataset.id;
+        nombre.value = button.dataset.name;
+        precio.value = button.dataset.price;
+        document.querySelector('.admin-form').open = true;
+        nombre.focus();
+    }));
+    document.getElementById('limpiarCatalogo').addEventListener('click', () => {
+        catalogoId.value = ''; nombre.value = ''; precio.value = ''; nombre.focus();
+    });
+
+    document.querySelectorAll('[data-image-form]').forEach(form => {
+        const input = form.querySelector('input[type="file"]');
+        const card = form.closest('.catalog-item');
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+                input.value = '';
+                window.alert('Seleccione JPEG, PNG o WebP de hasta 5 MB.');
+                return;
+            }
+            const preview = card.querySelector('[data-photo-preview]');
+            const placeholder = card.querySelector('[data-photo-placeholder]');
+            preview.src = URL.createObjectURL(file);
+            preview.hidden = false;
+            if (placeholder) placeholder.hidden = true;
+        });
+    });
+    const celular = document.getElementById('celularVenta');
+    const pago = document.getElementById('formaPago');
+    const cuotas = document.getElementById('numeroCuotas');
+    const precioEsperado = document.getElementById('Venta_PrecioEsperado');
+    const resumen = document.getElementById('resumenPrecio');
+    const moneda = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
+    function actualizarPrecio() {
+        const option = celular.selectedOptions[0];
+        const valor = Number(option?.dataset.precio);
+        if (!valor) { precioEsperado.value = ''; resumen.textContent = 'Elige un celular para ver el total.'; return; }
+        precioEsperado.value = valor.toFixed(2);
+        if (pago.value === 'EFECTIVO') {
+            const total = Math.round(valor * 0.58 * 100) / 100;
+            resumen.textContent = `Precio ${moneda.format(valor)} · descuento 42% · total ${moneda.format(total)}`;
+        } else resumen.textContent = `Precio financiado ${moneda.format(valor)} · interés anual 16,5% · 3 a 18 cuotas.`;
+    }
+    function actualizarPago() {
+        const esCredito = pago.value === 'CREDITO_DIRECTO';
+        cuotas.disabled = !esCredito; cuotas.required = esCredito;
+        document.getElementById('grupoCuotas').hidden = !esCredito;
+        actualizarPrecio();
+    }
+    celular.addEventListener('change', actualizarPrecio);
+    pago.addEventListener('change', actualizarPago);
+    actualizarPago();
+
+    document.getElementById('consultarCredito').addEventListener('click', async event => {
+        const boton = event.currentTarget;
+        const resultado = document.getElementById('resultadoCredito');
+        const cedula = document.getElementById('Venta_Cedula').value.trim();
+        if (!cedula) { resultado.textContent = 'Ingrese la cédula para consultar.'; document.getElementById('Venta_Cedula').focus(); return; }
+        boton.disabled = true; resultado.textContent = 'Consultando BanQuito…';
+        try {
+            const response = await fetch(`@Url.Action("Elegibilidad", "Tienda")?cedula=${encodeURIComponent(cedula)}`, { headers: { 'Accept': 'application/json' } });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.mensaje || 'No se pudo comunicar con BanQuito.');
+            resultado.textContent = data.sujetoCredito
+                ? `Elegible · máximo ${moneda.format(data.montoMaximo)}. BanQuito vuelve a validar al confirmar.`
+                : `No elegible · ${data.motivo}`;
+            resultado.dataset.state = data.sujetoCredito ? 'ok' : 'bad';
+        } catch (error) { resultado.textContent = error.message; resultado.dataset.state = 'bad'; }
+        finally { boton.disabled = false; }
+    });
+
+    document.querySelectorAll('form[data-guard-submit]').forEach(form => form.addEventListener('submit', event => {
+        if (!form.reportValidity()) { event.preventDefault(); return; }
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) { event.preventDefault(); return; }
+        const button = form.querySelector('button[type="submit"]');
+        if (button) { button.disabled = true; button.dataset.original = button.textContent; button.textContent = 'Procesando…'; }
+    }));
+})();
+</script>
+}

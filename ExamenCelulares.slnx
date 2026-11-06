@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/04. CLICON/">
+    <Project Path="04. CLICON/Celulares.Consola/Celulares.Consola.csproj" />
+  </Folder>
+  <Folder Name="/04. CLIESC/">
+    <Project Path="04. CLIESC/Celulares.Escritorio/Celulares.Escritorio.csproj" />
+  </Folder>
+  <Folder Name="/04. CLIMOV/">
+    <Project Path="04. CLIMOV/Celulares.Movil/Celulares.Movil.csproj" />
+  </Folder>
+  <Folder Name="/04. CLIWEB/">
+    <Project Path="04. CLIWEB/Celulares.Web/Celulares.Web.csproj" />
+  </Folder>
+  <Folder Name="/04. COMPARTIDO/">
+    <Project Path="04. COMPARTIDO/Celulares.Cliente/Celulares.Cliente.csproj" />
+  </Folder>
+  <Folder Name="/04. SERVIDOR/">
+    <Project Path="04. SERVIDOR/Administracion/Administracion.csproj" />
+    <Project Path="04. SERVIDOR/BanQuito.Administracion/BanQuito.Administracion.csproj" />
+    <Project Path="04. SERVIDOR/BanQuito.Api/BanQuito.Api.csproj" />
+    <Project Path="04. SERVIDOR/BanQuito.Contratos/BanQuito.Contratos.csproj" />
+    <Project Path="04. SERVIDOR/BanQuito.Dominio/BanQuito.Dominio.csproj" />
+    <Project Path="04. SERVIDOR/BanQuito.Pruebas/BanQuito.Pruebas.csproj" />
+    <Project Path="04. SERVIDOR/Comercializadora.Api/Comercializadora.Api.csproj" />
+    <Project Path="04. SERVIDOR/Comercializadora.Dominio/Comercializadora.Dominio.csproj" />
+  </Folder>
+  <Folder Name="/04. SERVIDOR/Contratos/">
+    <Project Path="04. SERVIDOR/Contratos/Celulares.Contratos.csproj" />
+  </Folder>
+  <Folder Name="/04. SERVIDOR/Pruebas/">
+    <Project Path="04. SERVIDOR/Pruebas/Comercializadora.Pruebas.csproj" />
+  </Folder>
+</Solution>
