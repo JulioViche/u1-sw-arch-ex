@@ -1,0 +1,11 @@
+**/.git
+**/.vs
+**/bin
+**/obj
+**/*.docx
+**/*.pptx
+**/*.pdf
+01. UML/
+02. MER/
+05. DOCUMENTACION/
+
