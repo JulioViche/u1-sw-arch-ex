@@ -50,13 +50,22 @@
             <label asp-for="Venta.NombreCliente">Nombre del comprador</label>
             <input asp-for="Venta.NombreCliente" maxlength="100" placeholder="Nombre completo del cliente" autocomplete="name" required />
 
-            <label>Celulares a adquirir</label>
+            <label class="picker-label">Celulares a adquirir</label>
             <details class="phone-picker">
-                <summary id="celularResumen">Selecciona uno o varios modelos</summary>
+                <summary id="celularResumen">
+                    <span class="summary-copy">Selecciona uno o varios modelos</span>
+                    <span class="summary-hint">Abrir catálogo</span>
+                </summary>
                 <div class="phone-options" id="celularVenta">
                     @foreach (var c in Model.Catalogo) {
-                        <label><input type="checkbox" value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)" checked="@(Model.Venta.Detalles.Any(d => d.IdCelular == c.Id))" />
-                            <span>@c.Nombre · @c.Precio.ToString("C2")</span></label>
+                        <label class="phone-option">
+                            <span class="phone-option-copy">
+                                <strong>@c.Nombre</strong>
+                                <small>Disponible para la venta</small>
+                            </span>
+                            <span class="phone-option-price">@c.Precio.ToString("C2")</span>
+                            <input type="checkbox" value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)" checked="@(Model.Venta.Detalles.Any(d => d.IdCelular == c.Id))" />
+                        </label>
                     }
                 </div>
             </details>
@@ -297,4 +306,3 @@
 })();
 </script>
 }
-
