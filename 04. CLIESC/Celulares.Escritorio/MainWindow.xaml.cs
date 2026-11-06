@@ -69,7 +69,26 @@ public partial class MainWindow : Window
         await CargarCatalogo();
     }
 
-    private async void ActualizarCatalogo(object sender, RoutedEventArgs e) => await CargarCatalogo();
+    private async void ActualizarCatalogo(object sender, RoutedEventArgs e)
+    {
+        if (BotonActualizar != null)
+        {
+            BotonActualizar.IsEnabled = false;
+            BotonActualizar.Content = "🔄  Actualizando...";
+        }
+        try
+        {
+            await CargarCatalogo();
+        }
+        finally
+        {
+            if (BotonActualizar != null)
+            {
+                BotonActualizar.IsEnabled = true;
+                BotonActualizar.Content = "🔄  Actualizar";
+            }
+        }
+    }
 
     // =========================================================================
     // NAVEGACIÓN ENTRE VISTAS (CATÁLOGO vs VENTAS vs FACTURA)

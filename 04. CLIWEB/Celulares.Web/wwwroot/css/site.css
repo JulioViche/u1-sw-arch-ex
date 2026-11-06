@@ -582,6 +582,20 @@ header.app-header, header {
     margin: 0.25rem 0 0;
     font-size: 1.45rem;
 }
+.panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.btn-refresh-catalog {
+    margin: 0 !important;
+    padding: 0.7rem 1.15rem !important;
+    font-weight: 700 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
 .btn-open-create {
     margin: 0 !important;
     padding: 0.7rem 1.3rem !important;

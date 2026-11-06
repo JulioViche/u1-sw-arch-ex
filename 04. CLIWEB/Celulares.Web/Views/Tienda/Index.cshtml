@@ -27,9 +27,14 @@
                 <span class="eyebrow">EQUIPOS DISPONIBLES</span>
                 <h2>Modelos en catálogo</h2>
             </div>
-            <button type="button" class="primary btn-open-create" id="btnNuevoCelular">
-                ＋ Registrar nuevo celular
-            </button>
+            <div class="panel-header-actions">
+                <button type="button" class="secondary btn-refresh-catalog" id="btnActualizarCatalogo" title="Actualizar catálogo desde la base de datos">
+                    🔄 Actualizar catálogo
+                </button>
+                <button type="button" class="primary btn-open-create" id="btnNuevoCelular">
+                    ＋ Registrar nuevo celular
+                </button>
+            </div>
         </div>
 
         @if (Model.Catalogo.Count == 0) { 
@@ -194,6 +199,24 @@
     if (savedPos !== null) {
         window.scrollTo(0, parseInt(savedPos, 10));
         sessionStorage.removeItem('celularesScrollPos');
+    }
+
+    // Toast de catálogo actualizado
+    if (sessionStorage.getItem('mostrarToastActualizado')) {
+        sessionStorage.removeItem('mostrarToastActualizado');
+        setTimeout(() => mostrarToast('Catálogo actualizado con la base de datos.', 'info'), 150);
+    }
+
+    // Botón refrescar catálogo
+    const btnActualizar = document.getElementById('btnActualizarCatalogo');
+    if (btnActualizar) {
+        btnActualizar.addEventListener('click', () => {
+            btnActualizar.disabled = true;
+            btnActualizar.innerHTML = '🔄 Actualizando…';
+            sessionStorage.setItem('celularesScrollPos', String(window.scrollY));
+            sessionStorage.setItem('mostrarToastActualizado', 'true');
+            window.location.reload();
+        });
     }
 
     // --- 2. SISTEMA DE TOASTS NOTIFICACIONES ---

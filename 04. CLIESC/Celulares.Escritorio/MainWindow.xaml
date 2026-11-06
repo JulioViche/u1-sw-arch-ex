@@ -296,7 +296,7 @@
               <TextBlock Text="Modelos en catálogo" FontSize="22" FontWeight="Black" Margin="0,2,0,0"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-              <Button Content="🔄  Actualizar" Click="ActualizarCatalogo" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Padding="12,8" MinHeight="38" Margin="0,0,8,0"/>
+              <Button x:Name="BotonActualizar" Content="🔄  Actualizar" Click="ActualizarCatalogo" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Padding="12,8" MinHeight="38" Margin="0,0,8,0"/>
               <Button Content="＋ Registrar nuevo celular" Click="AbrirModalNuevo" Padding="16,8" MinHeight="38" Margin="0"/>
             </StackPanel>
           </Grid>
