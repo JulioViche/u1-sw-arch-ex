@@ -16,7 +16,7 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
         $"SELECT {top} {ProyeccionFactura} FROM dbo.FACTURA";
 
     private sealed record DatosSolicitud(Guid IdOperacion, string Cedula, string NombreCliente,
-        int IdCelular, string FormaPago, int? NumeroCuotas, decimal? PrecioEsperado);
+        IReadOnlyList<DetalleSolicitudFactura> Detalles, string FormaPago, int? NumeroCuotas);
 
     private async Task<SqlConnection> Abrir(CancellationToken ct)
     {
@@ -79,8 +79,11 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
         if (forma is not ("EFECTIVO" or "CREDITO_DIRECTO"))
             throw new ErrorNegocio("FormaPago debe ser EFECTIVO o CREDITO_DIRECTO.", 400);
 
-        return new(solicitud.IdOperacion, cedula, nombre, solicitud.IdCelular, forma,
-            solicitud.NumeroCuotas, solicitud.PrecioEsperado);
+        var detalles = solicitud.Detalles is { Count: > 0 } ? solicitud.Detalles :
+            [new DetalleSolicitudFactura(solicitud.IdCelular, solicitud.PrecioEsperado)];
+        if (detalles.Any(d => d is null || d.IdCelular <= 0) || detalles.Select(d => d.IdCelular).Distinct().Count() != detalles.Count)
+            throw new ErrorNegocio("Seleccione celulares válidos sin repetir modelos.", 400);
+        return new(solicitud.IdOperacion, cedula, nombre, detalles.OrderBy(d => d.IdCelular).ToArray(), forma, solicitud.NumeroCuotas);
     }
 
     private static async Task<Factura?> LeerPor(SqlConnection db, SqlTransaction? tx, string columna,
@@ -88,18 +91,34 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
     {
         var pista = bloquear ? " WITH (UPDLOCK,HOLDLOCK)" : "";
         await using var cmd = Comando(db, tx, ConsultaFactura() + pista + $" WHERE {columna}=@valor", ("@valor", valor));
+        Factura? factura;
+        await using (var lector = await cmd.ExecuteReaderAsync(ct))
+            factura = await lector.ReadAsync(ct) ? Leer(lector) : null;
+        return factura is null ? null : await CargarDetalles(db, tx, factura, ct);
+    }
+
+    private static async Task<Factura> CargarDetalles(SqlConnection db, SqlTransaction? tx, Factura factura, CancellationToken ct)
+    {
+        await using var cmd = Comando(db, tx, "SELECT ID_CELULAR,NOMBRE_CELULAR,PRECIO FROM dbo.FACTURA_DETALLE WHERE ID_FACTURA=@id ORDER BY ID_CELULAR", ("@id", factura.Id));
         await using var lector = await cmd.ExecuteReaderAsync(ct);
-        return await lector.ReadAsync(ct) ? Leer(lector) : null;
+        var detalles = new List<DetalleFactura>();
+        while (await lector.ReadAsync(ct)) detalles.Add(new(lector.GetInt32(0), lector.GetString(1), lector.GetDecimal(2)));
+        if (detalles.Count == 0) detalles.Add(new(factura.IdCelular, factura.Celular, factura.Precio));
+        return factura with { Detalles = detalles, Celular = string.Join(", ", detalles.Select(d => d.Celular)) };
     }
 
     private static void ValidarReintento(Factura factura, DatosSolicitud solicitud)
     {
-        ReglasFacturacion.ValidarPrecioEsperado(factura.Precio, solicitud.PrecioEsperado);
         if (!string.Equals(factura.Cedula, solicitud.Cedula, StringComparison.Ordinal) ||
             !string.Equals(factura.NombreCliente, solicitud.NombreCliente, StringComparison.Ordinal) ||
-            factura.IdCelular != solicitud.IdCelular || factura.FormaPago != solicitud.FormaPago ||
+            factura.FormaPago != solicitud.FormaPago ||
             factura.NumeroCuotas != solicitud.NumeroCuotas)
             throw new ErrorNegocio("IdOperacion ya está asociada a una solicitud diferente.", 409);
+        var anteriores = factura.Detalles.OrderBy(d => d.IdCelular).ToArray();
+        if (anteriores.Length != solicitud.Detalles.Count || anteriores.Where((d, i) => d.IdCelular != solicitud.Detalles[i].IdCelular).Any())
+            throw new ErrorNegocio("IdOperacion ya está asociada a una solicitud diferente.", 409);
+        for (var i = 0; i < anteriores.Length; i++)
+            ReglasFacturacion.ValidarPrecioEsperado(anteriores[i].Precio, solicitud.Detalles[i].PrecioEsperado);
     }
 
     public async Task<IReadOnlyList<Factura>> ListarPorCedula(string? cedula, CancellationToken ct)
@@ -112,9 +131,10 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
         await using var cmd = Comando(db, null,
             ConsultaFactura("TOP (50)") + " WHERE CEDULA=@cedula ORDER BY FECHA DESC,ID_FACTURA DESC",
             ("@cedula", limpia));
-        await using var lector = await cmd.ExecuteReaderAsync(ct);
         var facturas = new List<Factura>();
-        while (await lector.ReadAsync(ct)) facturas.Add(Leer(lector));
+        await using (var lector = await cmd.ExecuteReaderAsync(ct))
+            while (await lector.ReadAsync(ct)) facturas.Add(Leer(lector));
+        for (var i = 0; i < facturas.Count; i++) facturas[i] = await CargarDetalles(db, null, facturas[i], ct);
         return facturas;
     }
 
@@ -154,23 +174,26 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
                 return existente;
             }
 
-            decimal precio;
-            string nombreCelular;
-            await using (var cmd = Comando(db, tx, """
+            var detalles = new List<DetalleFactura>();
+            foreach (var seleccionado in solicitud.Detalles)
+            {
+              await using var cmd = Comando(db, tx, """
                 SELECT NOMBRE,PRECIO FROM dbo.CELULAR WITH (UPDLOCK,HOLDLOCK)
                 WHERE ID_CELULAR=@id AND ACTIVO=1
-                """, ("@id", solicitud.IdCelular)))
-            {
+                """, ("@id", seleccionado.IdCelular));
                 await using var lector = await cmd.ExecuteReaderAsync(ct);
                 if (!await lector.ReadAsync(ct)) throw new ErrorNegocio("Celular inexistente o inactivo.", 404);
-                nombreCelular = lector.GetString(0);
-                precio = lector.GetDecimal(1);
+                var precioCelular = lector.GetDecimal(1);
+                ReglasFacturacion.ValidarPrecioEsperado(precioCelular, seleccionado.PrecioEsperado);
+                detalles.Add(new(seleccionado.IdCelular, lector.GetString(0), precioCelular));
             }
-            ReglasFacturacion.ValidarPrecioEsperado(precio, solicitud.PrecioEsperado);
+            var precio = detalles.Sum(d => d.Precio);
+            if (precio > 99999999.99m) throw new ErrorNegocio("El total supera el máximo permitido.", 400);
 
             var total = solicitud.FormaPago == "EFECTIVO" ? ReglasFacturacion.TotalEfectivo(precio) : precio;
             var descuento = precio - total;
             var estado = solicitud.FormaPago == "EFECTIVO" ? "APROBADA" : "PENDIENTE";
+            int facturaId;
             await using (var cmd = Comando(db, tx, """
                 INSERT dbo.FACTURA(ID_OPERACION,CEDULA,NOMBRE_CLIENTE,ID_CELULAR,NOMBRE_CELULAR,
                     FORMA_PAGO,PRECIO,DESCUENTO,TOTAL,COD_CLIENTE_BANCO,COD_CREDITO,NUMERO_CUOTAS,ESTADO)
@@ -178,11 +201,17 @@ public class ServicioFacturas(IConfiguration configuracion, ServicioBanQuito ban
                 VALUES(@operacion,@cedula,@cliente,@celular,@nombreCelular,@forma,@precio,@descuento,
                     @total,NULL,NULL,@cuotas,@estado)
                 """, ("@operacion", solicitud.IdOperacion), ("@cedula", solicitud.Cedula),
-                ("@cliente", solicitud.NombreCliente), ("@celular", solicitud.IdCelular),
-                ("@nombreCelular", nombreCelular), ("@forma", solicitud.FormaPago), ("@precio", precio),
+                ("@cliente", solicitud.NombreCliente), ("@celular", detalles[0].IdCelular),
+                ("@nombreCelular", detalles[0].Celular), ("@forma", solicitud.FormaPago), ("@precio", precio),
                 ("@descuento", descuento), ("@total", total), ("@cuotas", solicitud.NumeroCuotas), ("@estado", estado)))
             {
-                await cmd.ExecuteScalarAsync(ct);
+                facturaId = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+            }
+            foreach (var detalle in detalles)
+            {
+                await using var cmd = Comando(db, tx, "INSERT dbo.FACTURA_DETALLE(ID_FACTURA,ID_CELULAR,NOMBRE_CELULAR,PRECIO) VALUES(@factura,@celular,@nombre,@precio)",
+                    ("@factura", facturaId), ("@celular", detalle.IdCelular), ("@nombre", detalle.Celular), ("@precio", detalle.Precio));
+                await cmd.ExecuteNonQueryAsync(ct);
             }
             await tx.CommitAsync(ct);
             return await ObtenerPorOperacion(solicitud.IdOperacion, ct) ??

@@ -4,7 +4,7 @@ Sistema .NET 10 para catálogo y facturación de celulares. SQL Server 2025 Expr
 
 ## Límites
 
-- La comercializadora expone REST en `http://127.0.0.1:19102/`.
+- La comercializadora expone REST en `http://192.168.137.1:19102/` desde la PC que comparte el hotspot de Windows.
 - BanQuito es un sistema separado, en `U1/TG.1/1.4. PAO202651_RESTFUL_DOTNET_CONBDD_NRC36884_GR09`; atiende elegibilidad y crédito por HTTP en `http://127.0.0.1:19101/`.
 - La web MVC usa `http://127.0.0.1:19103/`.
 - La tienda guarda la referencia remota del crédito; no comparte base ni ensamblados con BanQuito.
@@ -12,10 +12,18 @@ Sistema .NET 10 para catálogo y facturación de celulares. SQL Server 2025 Expr
 ## Ejecutar
 
 1. Instale .NET 10 y SQL Server 2025 Express con instancia `SQLEXPRESS`.
-2. Aplique `03. BDD/01_CrearBases.sql` y `02_DatosPrueba.sql`. Para una base existente, aplique también `03_MigrarImagenes.sql`.
+2. Aplique `03. BDD/01_CrearBases.sql` y `02_DatosPrueba.sql`. Para una base existente, aplique también `03_MigrarImagenes.sql` y `04_MigrarDetalleFactura.sql` antes de iniciar la API.
 3. Inicie BanQuito si probará compras a crédito.
 4. Inicie `04. SERVIDOR/Comercializadora.Api/Comercializadora.Api.csproj`.
 5. Inicie uno o más clientes: consola, WPF, MAUI Android o web MVC.
+
+Los clientes leen `CELULARES_API_URL`; por defecto usan `http://192.168.137.1:19102/`. Para definirla en Windows para el usuario actual:
+
+```powershell
+[Environment]::SetEnvironmentVariable('CELULARES_API_URL', 'http://192.168.137.1:19102/', 'User')
+```
+
+Reinicie Visual Studio y los clientes para que reciban la variable. La PC servidor debe permitir conexiones entrantes al puerto `19102`.
 
 `05. DOCUMENTACION/ManualTecnico.md` explica configuración y comandos. Android compila sin dispositivo con `dotnet build`; instalar requiere un emulador o dispositivo conectado.
 
@@ -24,6 +32,7 @@ Sistema .NET 10 para catálogo y facturación de celulares. SQL Server 2025 Expr
 - Catálogo con alta, edición, desactivación y fotos opcionales.
 - Fotos JPEG, PNG o WebP de hasta 5 MiB; se pueden cargar, reemplazar y quitar desde los cuatro clientes.
 - Venta en efectivo con 42% de descuento.
+- Selección de varios modelos en una venta, registrados en una sola factura.
 - Venta a crédito aprobada por BanQuito, consulta de facturas y amortización.
 - Tema claro y oscuro en las interfaces compatibles.
 

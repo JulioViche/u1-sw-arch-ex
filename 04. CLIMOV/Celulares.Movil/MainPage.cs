@@ -45,7 +45,8 @@ public sealed class MainPage : Shell
     private readonly Entry comprador = Campo("Nombre completo del comprador");
     private readonly Entry cuotas = Campo("Cuotas para crédito (de 3 a 18)", Keyboard.Numeric);
     private readonly Entry busqueda = Campo("Cédula del cliente a consultar", Keyboard.Numeric);
-    private readonly Picker celularVenta = new() { Title = "Seleccione un celular", ItemDisplayBinding = new Binding(nameof(Celular.Nombre)) };
+    private readonly VerticalStackLayout celularVenta = new() { Spacing = 4 };
+    private readonly Dictionary<int, CheckBox> seleccionVenta = new();
     private readonly Picker forma = new() { Title = "Forma de pago", ItemsSource = new[] { "Efectivo (42% de descuento)", "Crédito directo BanQuito" }, SelectedIndex = 0 };
     private readonly Image foto = new() { HeightRequest = 180, Aspect = Aspect.AspectFit, Source = "telefono.png" };
 
@@ -140,7 +141,6 @@ public sealed class MainPage : Shell
         }
 
         precio.TextChanged += (_, _) => ActualizarPreviewPrecioEditor();
-        celularVenta.SelectedIndexChanged += (_, _) => ActualizarTotalVenta();
         forma.SelectedIndexChanged += (_, _) => ActualizarTotalVenta();
 
         elegibilidad.Text = "Ingrese la cédula y consulte si es sujeto a crédito en BanQuito.";
@@ -300,7 +300,7 @@ public sealed class MainPage : Shell
         var editar = Boton("✏️  Editar datos", async () => await EditarCelular(celular), secundario: true);
         var vender = Boton("🛒  Vender", async () =>
         {
-            celularVenta.SelectedItem = celulares.FirstOrDefault(x => x.Id == celular.Id);
+            if (seleccionVenta.TryGetValue(celular.Id, out var casilla)) casilla.IsChecked = true;
             ActualizarTotalVenta();
             await NavegarMenu("Nueva venta", "//ventaMenu/ventaSeccion/venta");
         });
@@ -344,8 +344,6 @@ public sealed class MainPage : Shell
         resumenPrecio.SetDynamicResource(Label.TextColorProperty, "SecundarioDinamico");
         elegibilidad.SetDynamicResource(Label.TextColorProperty, "AcentoDinamico");
         totalVenta.SetDynamicResource(Label.TextColorProperty, "AcentoDinamico");
-        celularVenta.SetDynamicResource(Picker.TextColorProperty, "TextoDinamico");
-        celularVenta.SetDynamicResource(Picker.TitleColorProperty, "SecundarioDinamico");
         forma.SetDynamicResource(Picker.TextColorProperty, "TextoDinamico");
         forma.SetDynamicResource(Picker.TitleColorProperty, "SecundarioDinamico");
 
@@ -523,7 +521,8 @@ public sealed class MainPage : Shell
         contenedorVoucher.Add(Separador());
         contenedorVoucher.Add(Fila(TextoLabel("Cliente:", 13, FontAttributes.Bold, Secundario), TextoLabel(factura.NombreCliente, 14, FontAttributes.Bold, Texto)));
         contenedorVoucher.Add(Fila(TextoLabel("Cédula:", 13, FontAttributes.Bold, Secundario), TextoLabel(factura.Cedula, 14, FontAttributes.None, Texto)));
-        contenedorVoucher.Add(Fila(TextoLabel("Equipo celular:", 13, FontAttributes.Bold, Secundario), TextoLabel(factura.Celular, 14, FontAttributes.Bold, Texto)));
+        foreach (var detalle in factura.Detalles)
+            contenedorVoucher.Add(Fila(TextoLabel(detalle.Celular, 13, FontAttributes.Bold, Secundario), TextoLabel(detalle.Precio.ToString("C2"), 14, FontAttributes.Bold, Texto)));
         contenedorVoucher.Add(Fila(TextoLabel("Forma de pago:", 13, FontAttributes.Bold, Secundario),
             TextoLabel(esEfectivo ? "Efectivo" : $"Crédito directo ({factura.NumeroCuotas} cuotas)", 14, FontAttributes.None, Texto)));
         contenedorVoucher.Add(Separador());
@@ -628,7 +627,13 @@ public sealed class MainPage : Shell
 
     private string ServidorActual
     {
-        get => Preferences.Default.Get("celulares.servidor", MauiProgram.DireccionServidor);
+        get
+        {
+            var desdeEntorno = Environment.GetEnvironmentVariable("CELULARES_API_URL");
+            return string.IsNullOrWhiteSpace(desdeEntorno)
+                ? Preferences.Default.Get("celulares.servidor", MauiProgram.DireccionServidor)
+                : MauiProgram.DireccionServidor;
+        }
         set => Preferences.Default.Set("celulares.servidor", value);
     }
 
@@ -703,7 +708,16 @@ public sealed class MainPage : Shell
         try
         {
             celulares = await Controlador().Catalogo();
-            celularVenta.ItemsSource = celulares;
+            var anteriores = seleccionVenta.Where(p => p.Value.IsChecked).Select(p => p.Key).ToHashSet();
+            seleccionVenta.Clear();
+            celularVenta.Clear();
+            foreach (var cel in celulares)
+            {
+                var casilla = new CheckBox { IsChecked = anteriores.Contains(cel.Id) };
+                casilla.CheckedChanged += (_, _) => ActualizarTotalVenta();
+                seleccionVenta[cel.Id] = casilla;
+                celularVenta.Add(Fila(TextoLabel($"{cel.Nombre} · {cel.Precio:C2}", 14, FontAttributes.None, Texto), casilla));
+            }
             tarjetasCatalogo.Clear();
 
             if (celulares.Length == 0)
@@ -865,17 +879,18 @@ public sealed class MainPage : Shell
     {
         var esCredito = forma.SelectedIndex == 1;
         camposCredito.IsVisible = esCredito;
-        var celular = celularVenta.SelectedItem as Celular;
+        var seleccionados = celulares.Where(c => seleccionVenta.TryGetValue(c.Id, out var casilla) && casilla.IsChecked).ToArray();
 
-        if (celular is null)
+        if (seleccionados.Length == 0)
         {
             resumenPrecio.Text = "Selecciona un celular para ver su precio.";
             totalVenta.Text = "$0.00";
             return;
         }
 
-        var total = esCredito ? celular.Precio : ControladorTienda.TotalEfectivo(celular.Precio);
-        resumenPrecio.Text = $"Precio de lista: {celular.Precio:C2}" + (esCredito ? "" : $"  ·  Descuento 42%: -{(celular.Precio - total):C2}");
+        var precioLista = seleccionados.Sum(c => c.Precio);
+        var total = esCredito ? precioLista : ControladorTienda.TotalEfectivo(precioLista);
+        resumenPrecio.Text = $"Precio de lista: {precioLista:C2}" + (esCredito ? "" : $"  ·  Descuento 42%: -{(precioLista - total):C2}");
         totalVenta.Text = total.ToString("C2");
     }
 
@@ -907,8 +922,11 @@ public sealed class MainPage : Shell
 
     private async Task Vender() => await Ejecutar(async () =>
     {
-        if (celularVenta.SelectedItem is not Celular celular)
+        var seleccionados = celulares.Where(c => seleccionVenta.TryGetValue(c.Id, out var casilla) && casilla.IsChecked).OrderBy(c => c.Id).ToArray();
+        if (seleccionados.Length == 0)
             throw new ArgumentException("Elige un celular del catálogo.");
+        var celular = seleccionados[0];
+        var precioLista = seleccionados.Sum(c => c.Precio);
 
         var numCedula = cedula.Text?.Trim() ?? "";
         var nomCliente = comprador.Text?.Trim() ?? "";
@@ -928,6 +946,7 @@ public sealed class MainPage : Shell
             Cedula = numCedula,
             NombreCliente = nomCliente,
             IdCelular = celular.Id,
+            Detalles = seleccionados.Select(c => new DetalleSolicitudFactura(c.Id, c.Precio)).ToList(),
             FormaPago = formaPago,
             NumeroCuotas = cuotasNum,
             PrecioEsperado = celular.Precio
@@ -945,16 +964,16 @@ public sealed class MainPage : Shell
                 elegibilidad.TextColor = PeligroColor;
                 throw new InvalidOperationException(evaluacion.Motivo ?? "El cliente no califica para crédito según las reglas de BanQuito.");
             }
-            if (celular.Precio > evaluacion.MontoMaximo)
+            if (precioLista > evaluacion.MontoMaximo)
             {
                 elegibilidad.Text = $"✗ Crédito insuficiente · Máximo aprobado: {evaluacion.MontoMaximo:C2}";
                 elegibilidad.TextColor = PeligroColor;
-                throw new InvalidOperationException($"El precio del celular ({celular.Precio:C2}) supera el monto máximo de crédito aprobado por BanQuito ({evaluacion.MontoMaximo:C2}).");
+                throw new InvalidOperationException($"El total ({precioLista:C2}) supera el monto máximo de crédito aprobado por BanQuito ({evaluacion.MontoMaximo:C2}).");
             }
         }
 
-        var total = esCredito ? celular.Precio : ControladorTienda.TotalEfectivo(celular.Precio);
-        var detalleModal = $"{celular.Nombre}\nComprador: {nomCliente}\nPago: {(esCredito ? $"Crédito BanQuito ({cuotasNum} cuotas)" : "Efectivo (42% desc)")}\nTotal a pagar: {total:C2}";
+        var total = esCredito ? precioLista : ControladorTienda.TotalEfectivo(precioLista);
+        var detalleModal = $"{string.Join(", ", seleccionados.Select(c => c.Nombre))}\nComprador: {nomCliente}\nPago: {(esCredito ? $"Crédito BanQuito ({cuotasNum} cuotas)" : "Efectivo (42% desc)")}\nTotal a pagar: {total:C2}";
 
         if (!await DisplayAlertAsync("Confirmar venta", detalleModal, "Emitir factura", "Cancelar")) return;
 
@@ -1101,7 +1120,7 @@ public sealed class MainPage : Shell
     };
 
     private static int Entero(string? texto) => int.TryParse(texto, out var n) && n is >= 3 and <= 18 ? n : throw new ArgumentException("El plazo de crédito debe ser entre 3 y 18 cuotas mensuales.");
-    private static bool MismaVenta(SolicitudFactura a, SolicitudFactura b) => a.Cedula == b.Cedula && a.NombreCliente == b.NombreCliente && a.IdCelular == b.IdCelular && a.FormaPago == b.FormaPago && a.NumeroCuotas == b.NumeroCuotas && a.PrecioEsperado == b.PrecioEsperado;
+    private static bool MismaVenta(SolicitudFactura a, SolicitudFactura b) => a.Cedula == b.Cedula && a.NombreCliente == b.NombreCliente && a.FormaPago == b.FormaPago && a.NumeroCuotas == b.NumeroCuotas && a.Detalles.SequenceEqual(b.Detalles);
     private ControladorTienda Controlador() => tienda ?? throw new InvalidOperationException("La comercializadora todavía no se conecta.");
 
     private Label TextoLabel(string texto, double tamano, FontAttributes estilo, Color color)

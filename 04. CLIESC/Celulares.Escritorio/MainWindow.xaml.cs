@@ -451,20 +451,22 @@ public partial class MainWindow : Window
 
     private void ActualizarPrecioVenta()
     {
-        if (CelularVenta.SelectedItem is not Celular celular || FormaPago.SelectedItem is not ComboBoxItem pago)
+        var seleccionados = CelularVenta.SelectedItems.Cast<Celular>().ToArray();
+        if (seleccionados.Length == 0 || FormaPago.SelectedItem is not ComboBoxItem pago)
         {
             PrecioSeleccionado.Text = "Elige un celular para ver el total.";
             return;
         }
 
+        var precio = seleccionados.Sum(c => c.Precio);
         if (pago.Tag?.ToString() == "EFECTIVO")
         {
-            var total = ControladorTienda.TotalEfectivo(celular.Precio);
-            PrecioSeleccionado.Text = $"Precio de lista {celular.Precio:C2} · Descuento 42% · Total en efectivo: {total:C2}";
+            var total = ControladorTienda.TotalEfectivo(precio);
+            PrecioSeleccionado.Text = $"Precio de lista {precio:C2} · Descuento 42% · Total en efectivo: {total:C2}";
         }
         else
         {
-            PrecioSeleccionado.Text = $"Precio financiado {celular.Precio:C2} · Interés anual 16,5% · 3 a 18 cuotas fijas.";
+            PrecioSeleccionado.Text = $"Precio financiado {precio:C2} · Interés anual 16,5% · 3 a 18 cuotas fijas.";
         }
     }
 
@@ -512,12 +514,15 @@ public partial class MainWindow : Window
                 return;
             }
 
-            if (CelularVenta.SelectedItem is not Celular celular)
+            var seleccionados = CelularVenta.SelectedItems.Cast<Celular>().OrderBy(c => c.Id).ToArray();
+            if (seleccionados.Length == 0)
             {
                 MessageBox.Show("Seleccione un celular del catálogo para registrar la venta.", "Celular no seleccionado", MessageBoxButton.OK, MessageBoxImage.Information);
                 CelularVenta.Focus();
                 return;
             }
+            var celular = seleccionados[0];
+            var precio = seleccionados.Sum(c => c.Precio);
 
             var forma = (FormaPago.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "EFECTIVO";
             int? cuotas = null;
@@ -543,9 +548,9 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                if (celular.Precio > evaluacion.MontoMaximo)
+                if (precio > evaluacion.MontoMaximo)
                 {
-                    MessageBox.Show($"El precio del modelo ({celular.Precio:C2}) excede el cupo crediticio máximo aprobado por BanQuito ({evaluacion.MontoMaximo:C2}) para este cliente.\n\nPor favor elija un modelo de menor valor o cambie la forma de pago a Efectivo.", "Cupo insuficiente", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"El total ({precio:C2}) excede el cupo aprobado ({evaluacion.MontoMaximo:C2}).", "Cupo insuficiente", MessageBoxButton.OK, MessageBoxImage.Warning);
                     Estado.Text = $"BanQuito: Precio supera el cupo de {evaluacion.MontoMaximo:C2}.";
                     return;
                 }
@@ -557,6 +562,7 @@ public partial class MainWindow : Window
                 Cedula = cedula,
                 NombreCliente = comprador,
                 IdCelular = celular.Id,
+                Detalles = seleccionados.Select(c => new DetalleSolicitudFactura(c.Id, c.Precio)).ToList(),
                 FormaPago = forma,
                 NumeroCuotas = cuotas,
                 PrecioEsperado = celular.Precio
@@ -564,16 +570,16 @@ public partial class MainWindow : Window
 
             if (pendiente is not null && (pendiente.Cedula != actual.Cedula || pendiente.NombreCliente != actual.NombreCliente ||
                 pendiente.IdCelular != actual.IdCelular || pendiente.FormaPago != actual.FormaPago ||
-                pendiente.NumeroCuotas != actual.NumeroCuotas || pendiente.PrecioEsperado != actual.PrecioEsperado))
+                pendiente.NumeroCuotas != actual.NumeroCuotas || !pendiente.Detalles.SequenceEqual(actual.Detalles)))
             {
                 MessageBox.Show("Hay una venta previa pendiente de confirmación. Reinténtela con los mismos datos o inicie una 'Nueva venta' para descartar esa referencia.", "Venta pendiente", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var total = forma == "EFECTIVO" ? ControladorTienda.TotalEfectivo(celular.Precio) : celular.Precio;
+            var total = forma == "EFECTIVO" ? ControladorTienda.TotalEfectivo(precio) : precio;
             var mensajeConfirmacion = forma == "EFECTIVO"
-                ? $"{celular.Nombre}\nForma de pago: Efectivo (42% desc. aplicado)\nTotal a facturar: {total:C2}\n\n¿Confirmar la venta y emitir la factura?"
-                : $"{celular.Nombre}\nForma de pago: Crédito BanQuito ({cuotas} cuotas fijas)\nTotal financiado: {total:C2}\n\n¿Confirmar la venta y emitir la factura?";
+                ? $"{string.Join(", ", seleccionados.Select(c => c.Nombre))}\nForma de pago: Efectivo (42% desc. aplicado)\nTotal a facturar: {total:C2}\n\n¿Confirmar la venta y emitir la factura?"
+                : $"{string.Join(", ", seleccionados.Select(c => c.Nombre))}\nForma de pago: Crédito BanQuito ({cuotas} cuotas fijas)\nTotal financiado: {total:C2}\n\n¿Confirmar la venta y emitir la factura?";
 
             if (MessageBox.Show(mensajeConfirmacion, "Confirmar transacción", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
@@ -613,7 +619,7 @@ public partial class MainWindow : Window
     {
         if (pendiente is not null && MessageBox.Show("La venta pudo registrarse. Reintente o consulte sus facturas antes de descartarla. ¿Descartar esta referencia?", "Venta pendiente", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         pendiente = null;
-        Cedula.Clear(); Comprador.Clear(); Cuotas.Clear(); CelularVenta.SelectedItem = null;
+        Cedula.Clear(); Comprador.Clear(); Cuotas.Clear(); CelularVenta.UnselectAll();
         Elegibilidad.Text = "Ingrese la cédula y consulte si es sujeto a crédito en BanQuito.";
         Elegibilidad.Foreground = (Brush)Resources["AccentBrush"];
         ElegibilidadBox.BorderBrush = (Brush)Resources["EdgeBrush"];
@@ -687,7 +693,7 @@ public partial class MainWindow : Window
         FacturaEstadoTexto.Text = factura.Estado;
         FacturaClienteTexto.Text = factura.NombreCliente;
         FacturaCedulaTexto.Text = $"Cédula {factura.Cedula}";
-        FacturaCelularTexto.Text = factura.Celular;
+        FacturaCelularTexto.Text = string.Join("\n", factura.Detalles.Select(d => $"{d.Celular} · {d.Precio:C2}"));
         FacturaPagoTexto.Text = factura.FormaPago;
         FacturaPrecioTexto.Text = factura.Precio.ToString("C2");
         FacturaDescuentoTexto.Text = factura.Descuento > 0 ? $"-{factura.Descuento:C2}" : "$0.00";

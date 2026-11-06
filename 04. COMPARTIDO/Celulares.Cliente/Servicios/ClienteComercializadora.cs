@@ -7,7 +7,7 @@ namespace Celulares.Cliente.Servicios;
 
 public sealed class ClienteComercializadora(HttpClient http)
 {
-    public static Uri Direccion(string? valor, string predeterminada = "http://127.0.0.1:19102/")
+    public static Uri Direccion(string? valor, string predeterminada = "http://192.168.137.1:19102/")
     {
         var texto = string.IsNullOrWhiteSpace(valor) ? predeterminada : valor.Trim();
         if (!Uri.TryCreate(texto.EndsWith('/') ? texto : texto + "/", UriKind.Absolute, out var uri) ||

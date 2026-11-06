@@ -23,7 +23,13 @@ $banco = '..\..\TG.1\1.4. PAO202651_RESTFUL_DOTNET_CONBDD_NRC36884_GR09'
 & $dotnet run --project '.\04. SERVIDOR\Administracion\Administracion.csproj' -- --aplicar '.\03. BDD\01_CrearBases.sql' '.\03. BDD\02_DatosPrueba.sql'
 ```
 
-Los inicializadores usan autenticación Windows y `SQLEXPRESS`. Los scripts son idempotentes; revise los datos existentes antes de aplicarlos. Si la base comercializadora ya existe, ejecute `03. BDD/03_MigrarImagenes.sql` para añadir columnas de imagen.
+Los inicializadores usan autenticación Windows y `SQLEXPRESS`. Los scripts son idempotentes; revise los datos existentes antes de aplicarlos. Si la base comercializadora ya existe, ejecute `03. BDD/03_MigrarImagenes.sql` para añadir columnas de imagen y `03. BDD/04_MigrarDetalleFactura.sql` para crear el detalle de las facturas y conservar sus datos anteriores. Aplique esta migración antes de iniciar la API actualizada.
+
+Configure `CELULARES_SQL_MASTER` con la conexión a `master` de la misma instancia SQL que usa la API y ejecute:
+
+```powershell
+& $dotnet run --project '.\04. SERVIDOR\Administracion\Administracion.csproj' -- --aplicar '.\03. BDD\04_MigrarDetalleFactura.sql'
+```
 
 ## Iniciar servicios y clientes
 
@@ -35,9 +41,9 @@ Desde la carpeta del proyecto, en terminales separadas:
 & 'D:\tools\dotnet10\dotnet.exe' run --project '.\04. CLIWEB\Celulares.Web\Celulares.Web.csproj'
 ```
 
-BanQuito escucha en `127.0.0.1:19101`, la tienda en `127.0.0.1:19102` y la web en `http://127.0.0.1:19103`. También se puede ejecutar `04. CLICON/Celulares.Consola` o `04. CLIESC/Celulares.Escritorio` con `dotnet run --project` y su archivo `.csproj`.
+BanQuito escucha en `127.0.0.1:19101`, la API de la tienda en `http://192.168.137.1:19102/` desde la PC servidor y la web en `http://127.0.0.1:19103`. Los clientes consola, escritorio, web y móvil usan `CELULARES_API_URL` cuando está definida; el valor predeterminado es la dirección del hotspot Windows. También se puede ejecutar `04. CLICON/Celulares.Consola` o `04. CLIESC/Celulares.Escritorio` con `dotnet run --project` y su archivo `.csproj`.
 
-El cliente móvil conecta automáticamente a `http://10.0.2.2:19102/`, configurado en `MauiProgram.DireccionServidor`; la interfaz no solicita direcciones técnicas. Para un teléfono físico, configure esa constante con la IP local del equipo antes de compilar, inicie la API de tienda con `-- --urls http://0.0.0.0:19102` y permita el puerto en la red local. Esto expone la API a la red local; úsela solo en red confiable.
+La API escucha en `0.0.0.0:19102` para aceptar conexiones desde la red. En el hotspot Windows, use `http://192.168.137.1:19102/`. La variable `CELULARES_API_URL` permite cambiar esta dirección para todos los clientes; en móvil también se puede configurar desde la interfaz. Permita el puerto `19102` en el firewall de la PC servidor.
 
 ## Compilar Android sin instalar
 

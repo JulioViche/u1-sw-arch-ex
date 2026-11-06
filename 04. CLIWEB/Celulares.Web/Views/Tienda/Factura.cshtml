@@ -84,7 +84,9 @@
                     <h3>Producto y Método de Pago</h3>
                 </div>
                 <div class="info-card-body">
-                    <p class="product-name">@Model.Factura.Celular</p>
+                    @foreach (var detalle in Model.Factura.Detalles) {
+                        <p class="product-name">@detalle.Celular · @detalle.Precio.ToString("C2")</p>
+                    }
                     <div class="payment-method-row">
                         <span class="field-label">Modalidad:</span>
                         @if (Model.Factura.FormaPago == "EFECTIVO") {

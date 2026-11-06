@@ -13,4 +13,8 @@ public class ReglasFacturacionTests
     [Fact]
     public void VistaPreviaEfectivoCoincideConElServidor() =>
         Assert.Equal(ReglasFacturacion.TotalEfectivo(101.99m), ControladorTienda.TotalEfectivo(101.99m));
+
+    [Fact]
+    public void EfectivoDescuentaSobreLaSumaDeLosCelulares() =>
+        Assert.Equal(174m, ReglasFacturacion.TotalEfectivo(100m + 200m));
 }

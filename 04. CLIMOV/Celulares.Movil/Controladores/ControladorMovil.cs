@@ -50,6 +50,7 @@ public sealed class ControladorMovil
         izquierda.Cedula == derecha.Cedula &&
         izquierda.NombreCliente == derecha.NombreCliente &&
         izquierda.IdCelular == derecha.IdCelular &&
+        izquierda.Detalles.SequenceEqual(derecha.Detalles) &&
         izquierda.FormaPago == derecha.FormaPago &&
         izquierda.NumeroCuotas == derecha.NumeroCuotas;
 }

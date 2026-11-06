@@ -25,15 +25,19 @@ public class SolicitudFactura
     public Guid IdOperacion { get; set; } = Guid.NewGuid();
     [Required, StringLength(100)] public string Cedula { get; set; } = "";
     [Required, StringLength(100)] public string NombreCliente { get; set; } = "";
-    [Range(1, int.MaxValue)] public int IdCelular { get; set; }
+    public int IdCelular { get; set; }
     [Required, RegularExpression("^(EFECTIVO|CREDITO_DIRECTO)$")] public string FormaPago { get; set; } = "EFECTIVO";
     public int? NumeroCuotas { get; set; }
     [Range(typeof(decimal), "0.01", "99999999.99", ParseLimitsInInvariantCulture = true)] public decimal? PrecioEsperado { get; set; }
+    public List<DetalleSolicitudFactura> Detalles { get; set; } = [];
 }
+public record DetalleSolicitudFactura(int IdCelular, decimal? PrecioEsperado);
+public record DetalleFactura(int IdCelular, string Celular, decimal Precio);
 public record Factura(int Id, Guid IdOperacion, DateTime Fecha, string Cedula, string NombreCliente,
     int IdCelular, string Celular, string FormaPago, decimal Precio, decimal Descuento,
     decimal Total, int? CreditoId, int? NumeroCuotas, string Estado)
 {
+    public IReadOnlyList<DetalleFactura> Detalles { get; init; } = [];
     [JsonIgnore] public string Etiqueta => $"{Id} · {Fecha:yyyy-MM-dd} · {Celular} · ${Total:F2} · {Estado}";
 }
 public class ErrorNegocio(string mensaje, int estado = 409) : Exception(mensaje)

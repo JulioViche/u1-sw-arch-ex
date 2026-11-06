@@ -9,6 +9,30 @@ namespace Comercializadora.Pruebas;
 public class ReintentoCreditoTests
 {
     [Fact]
+    public async Task VariosCelularesSeFinancianEnUnSoloCreditoPorElTotal()
+    {
+        var operacion = Guid.NewGuid();
+        var manejador = new BancoSimulado(async (solicitud, numero) =>
+        {
+            if (numero == 1) return Respuesta(new EvaluacionCredito(true, 7, "Cliente", "Aprobado", 500m));
+            var credito = await solicitud.Content!.ReadFromJsonAsync<SolicitudCredito>();
+            Assert.Equal(300m, credito!.PrecioTelefono);
+            Assert.Equal(operacion, credito.ReferenciaVenta);
+            return Respuesta(new Credito(11, 7, 300m, 6, new DateOnly(2026, 1, 1), "ACTIVO", []));
+        });
+        var factura = FacturaPendiente(operacion) with
+        {
+            Precio = 300m, Total = 300m,
+            Detalles = [new(1, "Uno", 100m), new(2, "Dos", 200m)]
+        };
+
+        var credito = await CrearServicio(manejador).OtorgarParaFactura(factura, CancellationToken.None);
+
+        Assert.Equal(300m, credito.Monto);
+        Assert.Equal(2, manejador.Llamadas);
+    }
+
+    [Fact]
     public async Task ReintentoRecuperaCreditoExistenteAunqueYaEsteActivo()
     {
         var operacion = Guid.NewGuid();

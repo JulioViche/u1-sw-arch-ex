@@ -5,7 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<ClienteComercializadora>(cliente =>
 {
-    cliente.BaseAddress = ClienteComercializadora.Direccion(builder.Configuration["CelularesApiUrl"]);
+    cliente.BaseAddress = ClienteComercializadora.Direccion(
+        Environment.GetEnvironmentVariable("CELULARES_API_URL") ?? builder.Configuration["CelularesApiUrl"]);
     cliente.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddTransient<ControladorTienda>();

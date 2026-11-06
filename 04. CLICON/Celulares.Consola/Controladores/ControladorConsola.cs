@@ -363,20 +363,20 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
 
         Console.WriteLine();
         VistaConsola.Seccion("NUEVA TRANSACCIÓN DE VENTA");
-        var id = VistaConsola.Entero("Seleccione el ID del celular a comprar");
-        var seleccionado = celulares.SingleOrDefault(c => c.Id == id)
-            ?? throw new ArgumentException("El ID seleccionado no existe en el catálogo activo.");
+        var ids = VistaConsola.Texto("IDs de celulares a comprar, separados por coma").Split(',');
+        if (ids.Length == 0 || ids.Any(x => !int.TryParse(x.Trim(), out var n) || n <= 0))
+            throw new ArgumentException("Ingrese IDs válidos separados por coma.");
+        var numeros = ids.Select(x => int.Parse(x.Trim())).ToArray();
+        if (numeros.Distinct().Count() != numeros.Length) throw new ArgumentException("No repita modelos.");
+        var seleccionados = numeros.Select(id => celulares.SingleOrDefault(c => c.Id == id)
+            ?? throw new ArgumentException("Un ID no existe en el catálogo activo.")).OrderBy(c => c.Id).ToArray();
+        var seleccionado = seleccionados[0];
+        var precio = seleccionados.Sum(c => c.Precio);
 
         var cedula = VistaConsola.Texto("Cédula del comprador");
         if (string.IsNullOrWhiteSpace(cedula)) throw new ArgumentException("La cédula es requerida.");
 
-        // Consulta de elegibilidad y autocompletado en BanQuito
-        var evaluacion = await tienda.EvaluarCredito(cedula);
-        Mostrar(evaluacion);
-
-        var nombreSugerido = !string.IsNullOrWhiteSpace(evaluacion.Nombre) ? evaluacion.Nombre : "";
-        var nombre = VistaConsola.Texto($"Nombre del comprador {(string.IsNullOrEmpty(nombreSugerido) ? "" : $"[Presione ENTER para usar '{nombreSugerido}']")}");
-        if (string.IsNullOrWhiteSpace(nombre)) nombre = nombreSugerido;
+        var nombre = VistaConsola.Texto("Nombre del comprador");
         if (string.IsNullOrWhiteSpace(nombre)) throw new ArgumentException("El nombre del comprador es requerido.");
 
         Console.WriteLine();
@@ -391,6 +391,8 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
 
         if (esCredito)
         {
+            var evaluacion = await tienda.EvaluarCredito(cedula);
+            Mostrar(evaluacion);
             if (!evaluacion.SujetoCredito)
             {
                 VistaConsola.Aviso($"BanQuito NO aprobó crédito para la cédula {cedula}: {evaluacion.Motivo}");
@@ -398,9 +400,9 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
                     return;
                 esCredito = false;
             }
-            else if (seleccionado.Precio > evaluacion.MontoMaximo)
+            else if (precio > evaluacion.MontoMaximo)
             {
-                VistaConsola.Aviso($"El precio del modelo ({seleccionado.Precio:C2}) supera el cupo aprobado por BanQuito ({evaluacion.MontoMaximo:C2}).");
+                VistaConsola.Aviso($"El total ({precio:C2}) supera el cupo aprobado por BanQuito ({evaluacion.MontoMaximo:C2}).");
                 if (!VistaConsola.Confirmar("¿Desea cambiar la forma de pago a EFECTIVO con 42% de descuento?"))
                     return;
                 esCredito = false;
@@ -411,17 +413,17 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
             }
         }
 
-        var total = esCredito ? seleccionado.Precio : ControladorTienda.TotalEfectivo(seleccionado.Precio);
-        var descuento = esCredito ? 0m : Math.Round(seleccionado.Precio * 0.42m, 2);
+        var total = esCredito ? precio : ControladorTienda.TotalEfectivo(precio);
+        var descuento = precio - total;
 
         Console.WriteLine();
         Console.WriteLine("  ╔══════════════════════════════════════════════════════════════════════════╗");
         Console.WriteLine("  ║                      RESUMEN DE LA TRANSACCIÓN                           ║");
         Console.WriteLine("  ╠══════════════════════════════════════════════════════════════════════════╣");
         Console.WriteLine($"  ║  Cliente:    {nombre} (Cédula: {cedula})".PadRight(75) + "║");
-        Console.WriteLine($"  ║  Equipo:     {seleccionado.Nombre}".PadRight(75) + "║");
+        foreach (var cel in seleccionados) Console.WriteLine($"  ║  Equipo:     {cel.Nombre} · {cel.Precio:C2}".PadRight(75) + "║");
         Console.WriteLine($"  ║  Pago:       {(esCredito ? $"Crédito BanQuito ({cuotas} cuotas)" : "Efectivo al contado (42% desc.)")}".PadRight(75) + "║");
-        Console.WriteLine($"  ║  Precio:     {seleccionado.Precio:C2} · Descuento: {descuento:C2} · TOTAL: {total:C2}".PadRight(75) + "║");
+        Console.WriteLine($"  ║  Precio:     {precio:C2} · Descuento: {descuento:C2} · TOTAL: {total:C2}".PadRight(75) + "║");
         Console.WriteLine("  ╚══════════════════════════════════════════════════════════════════════════╝");
 
         if (!VistaConsola.Confirmar("¿Confirmar y emitir la factura?")) return;
@@ -431,6 +433,7 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
             Cedula = cedula.Trim(),
             NombreCliente = nombre.Trim(),
             IdCelular = seleccionado.Id,
+            Detalles = seleccionados.Select(c => new DetalleSolicitudFactura(c.Id, c.Precio)).ToList(),
             FormaPago = esCredito ? "CREDITO_DIRECTO" : "EFECTIVO",
             NumeroCuotas = cuotas,
             PrecioEsperado = seleccionado.Precio
@@ -494,7 +497,7 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
         Console.WriteLine("  ╠══════════════════════════════════════════════════════════════════════════╣");
         Console.WriteLine($"  ║  Emisión:     {factura.Fecha:yyyy-MM-dd HH:mm:ss}".PadRight(75) + "║");
         Console.WriteLine($"  ║  Comprador:   {factura.NombreCliente} (Cédula: {factura.Cedula})".PadRight(75) + "║");
-        Console.WriteLine($"  ║  Equipo:      {factura.Celular}".PadRight(75) + "║");
+        foreach (var detalle in factura.Detalles) Console.WriteLine($"  ║  Equipo:      {detalle.Celular} · {detalle.Precio:C2}".PadRight(75) + "║");
         Console.WriteLine($"  ║  Forma pago:  {(factura.FormaPago == "EFECTIVO" ? "Efectivo al contado (42% desc.)" : $"Crédito directo BanQuito ({factura.NumeroCuotas} cuotas)")}".PadRight(75) + "║");
         Console.WriteLine("  ╟──────────────────────────────────────────────────────────────────────────╢");
         Console.WriteLine($"  ║  Precio de lista:                                         {factura.Precio,14:C2} ║");

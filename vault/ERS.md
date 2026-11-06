@@ -226,7 +226,7 @@ Tabla 6. Interfaces de software
 
 Los clientes usan HTTP y JSON. La API de tienda expone catálogo, imágenes, elegibilidad, facturas y amortización; BanQuito conserva endpoints propios.
 
-API de tienda: http://127.0.0.1:19102/ . Web: http://127.0.0.1:19103/ . BanQuito: http://127.0.0.1:19101/ . Configure estas direcciones por entorno; no se afirma que estén disponibles fuera del equipo.
+API de tienda: http://192.168.137.1:19102/ en el hotspot Windows, configurable con CELULARES_API_URL. Web: http://127.0.0.1:19103/ . BanQuito: http://127.0.0.1:19101/.
 
 
 ## 8.2 Requisitos Funcionales

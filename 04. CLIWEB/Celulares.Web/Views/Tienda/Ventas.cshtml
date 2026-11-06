@@ -31,7 +31,8 @@
             @Html.AntiForgeryToken()
             <div asp-validation-summary="All" class="error" role="alert"></div>
             <input asp-for="Venta.IdOperacion" type="hidden" />
-            <input asp-for="Venta.PrecioEsperado" type="hidden" />
+            <input asp-for="Venta.IdCelular" type="hidden" />
+            <div id="detallesVenta"></div>
 
             <div class="form-group-cedula">
                 <label asp-for="Venta.Cedula">Cédula del comprador</label>
@@ -49,11 +50,11 @@
             <label asp-for="Venta.NombreCliente">Nombre del comprador</label>
             <input asp-for="Venta.NombreCliente" maxlength="100" placeholder="Nombre completo del cliente" autocomplete="name" required />
 
-            <label asp-for="Venta.IdCelular">Celular a adquirir</label>
-            <select asp-for="Venta.IdCelular" id="celularVenta" required>
-                <option value="">Selecciona un celular del catálogo</option>
+            <label for="celularVenta">Celulares a adquirir (selecciona uno o varios)</label>
+            <p class="helper">En computadora, mantén Ctrl para seleccionar varios modelos.</p>
+            <select id="celularVenta" multiple required size="5">
                 @foreach (var c in Model.Catalogo) { 
-                    <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                    <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)" selected="@(Model.Venta.Detalles.Any(d => d.IdCelular == c.Id) ? "selected" : null)">
                         @c.Nombre · @c.Precio.ToString("C2")
                     </option> 
                 }
@@ -194,18 +195,25 @@
     const celular = document.getElementById('celularVenta');
     const pago = document.getElementById('formaPago');
     const cuotas = document.getElementById('numeroCuotas');
-    const precioEsperado = document.getElementById('Venta_PrecioEsperado');
+    const detalles = document.getElementById('detallesVenta');
     const resumen = document.getElementById('resumenPrecio');
 
     function actualizarPrecio() {
-        const option = celular.selectedOptions[0];
-        const valor = Number(option?.dataset.precio);
+        const opciones = Array.from(celular.selectedOptions);
+        const valor = opciones.reduce((s, o) => s + Number(o.dataset.precio), 0);
+        document.getElementById('Venta_IdCelular').value = opciones[0]?.value || '';
+        detalles.replaceChildren();
+        opciones.forEach((o, i) => {
+            for (const [campo, valor] of [['IdCelular', o.value], ['PrecioEsperado', o.dataset.precio]]) {
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = `Venta.Detalles[${i}].${campo}`; input.value = valor;
+                detalles.appendChild(input);
+            }
+        });
         if (!valor) { 
-            precioEsperado.value = ''; 
             resumen.textContent = 'Elige un celular para ver el total.'; 
             return; 
         }
-        precioEsperado.value = valor.toFixed(2);
         if (pago.value === 'EFECTIVO') {
             const total = Math.round(valor * 0.58 * 100) / 100;
             resumen.textContent = `Precio ${moneda.format(valor)} · descuento 42% · Total en efectivo: ${moneda.format(total)}`;
