@@ -110,7 +110,10 @@ public class TiendaController(ControladorTienda tienda) : Controller
         }
         catch (Exception error) when (EsErrorEsperado(error))
         {
-            return await MostrarVentas(venta, venta.Cedula, Mensaje(error) + " Si se cortó la conexión, reintente sin cambiar los datos.");
+            var aviso = Mensaje(error);
+            if (error is HttpRequestException or TaskCanceledException)
+                aviso += " Si se cortó la conexión, reintente sin cambiar los datos.";
+            return await MostrarVentas(venta, venta.Cedula, aviso);
         }
     }
 
@@ -186,7 +189,7 @@ public class TiendaController(ControladorTienda tienda) : Controller
     }
 
     private static bool EsErrorEsperado(Exception error) =>
-        error is InvalidOperationException or ArgumentException or HttpRequestException or TaskCanceledException;
+        error is InvalidOperationException or ArgumentException or HttpRequestException or TaskCanceledException or ErrorNegocio;
 
     private static string Mensaje(Exception error) => error is HttpRequestException or TaskCanceledException
         ? "No se pudo conectar con la comercializadora. Compruebe que el servidor esté iniciado."

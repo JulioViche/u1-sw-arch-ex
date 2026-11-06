@@ -40,7 +40,7 @@ public record Factura(int Id, Guid IdOperacion, DateTime Fecha, string Cedula, s
     public IReadOnlyList<DetalleFactura> Detalles { get; init; } = [];
     [JsonIgnore] public string Etiqueta => $"{Id} · {Fecha:yyyy-MM-dd} · {Celular} · ${Total:F2} · {Estado}";
 }
-public class ErrorNegocio(string mensaje, int estado = 409) : Exception(mensaje)
+public class ErrorNegocio(string mensaje, int estado = 409) : InvalidOperationException(mensaje)
 {
     public int Estado { get; } = estado;
 }

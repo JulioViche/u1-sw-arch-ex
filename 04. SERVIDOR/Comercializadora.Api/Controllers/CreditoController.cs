@@ -9,11 +9,18 @@ namespace Comercializadora.Api.Controllers;
 public class CreditoController(ServicioBanQuito banco) : ControllerBase
 {
     [HttpGet("elegibilidad")]
-    public Task<EvaluacionCredito> Elegibilidad([FromQuery] string? cedula, CancellationToken ct)
+    public async Task<ActionResult<EvaluacionCredito>> Elegibilidad([FromQuery] string? cedula, CancellationToken ct)
     {
-        var limpia = cedula?.Trim() ?? "";
-        if (limpia.Length is < 1 or > 100)
-            throw new ErrorNegocio("Ingrese una cédula de 1 a 100 caracteres.", 400);
-        return banco.Evaluar(limpia, ct);
+        try
+        {
+            var limpia = cedula?.Trim() ?? "";
+            if (limpia.Length is < 1 or > 100)
+                throw new ErrorNegocio("Ingrese una cédula de 1 a 100 caracteres.", 400);
+            return Ok(await banco.Evaluar(limpia, ct));
+        }
+        catch (ErrorNegocio error)
+        {
+            return StatusCode(error.Estado, new ProblemDetails { Status = error.Estado, Title = error.Message });
+        }
     }
 }
