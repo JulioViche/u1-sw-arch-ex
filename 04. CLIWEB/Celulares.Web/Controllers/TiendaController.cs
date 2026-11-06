@@ -10,6 +10,10 @@ public class TiendaController(ControladorTienda tienda) : Controller
     [HttpGet]
     public Task<IActionResult> Index() => Mostrar(new SolicitudFactura(), null);
 
+    private bool EsAjax() =>
+        Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+        Request.Headers.Accept.ToString().Contains("application/json");
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Guardar(int? id, string nombre, decimal precio)
     {
@@ -17,10 +21,17 @@ public class TiendaController(ControladorTienda tienda) : Controller
         {
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(nombre) || precio <= 0)
                 throw new ArgumentException("Ingrese nombre y precio positivo.");
-            await tienda.Guardar(id, nombre, precio);
-            TempData["Mensaje"] = "Celular guardado.";
+            var celular = await tienda.Guardar(id, nombre, precio);
+            if (EsAjax())
+                return Json(new { exito = true, mensaje = id is null ? "Celular guardado." : "Celular actualizado.", celular });
+            TempData["Mensaje"] = id is null ? "Celular guardado." : "Celular actualizado.";
         }
-        catch (Exception error) when (EsErrorEsperado(error)) { TempData["Error"] = Mensaje(error); }
+        catch (Exception error) when (EsErrorEsperado(error))
+        {
+            if (EsAjax())
+                return BadRequest(new { exito = false, error = Mensaje(error) });
+            TempData["Error"] = Mensaje(error);
+        }
         return RedirectToAction(nameof(Index));
     }
 
@@ -29,7 +40,9 @@ public class TiendaController(ControladorTienda tienda) : Controller
     {
         if (archivo is null || archivo.Length is 0 or > 5 * 1024 * 1024)
         {
-            TempData["Error"] = "Seleccione una imagen de hasta 5 MB.";
+            var msg = "Seleccione una imagen de hasta 5 MB.";
+            if (EsAjax()) return BadRequest(new { exito = false, error = msg });
+            TempData["Error"] = msg;
             return RedirectToAction(nameof(Index));
         }
 
@@ -37,24 +50,48 @@ public class TiendaController(ControladorTienda tienda) : Controller
         {
             await using var flujo = archivo.OpenReadStream();
             await tienda.SubirImagen(id, flujo, Path.GetFileName(archivo.FileName), archivo.ContentType);
+            if (EsAjax()) return Json(new { exito = true, mensaje = "Foto del celular guardada." });
             TempData["Mensaje"] = "Foto del celular guardada.";
         }
-        catch (Exception error) when (EsErrorEsperado(error)) { TempData["Error"] = Mensaje(error); }
+        catch (Exception error) when (EsErrorEsperado(error))
+        {
+            if (EsAjax()) return BadRequest(new { exito = false, error = Mensaje(error) });
+            TempData["Error"] = Mensaje(error);
+        }
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> QuitarImagen(int id)
     {
-        try { await tienda.QuitarImagen(id); TempData["Mensaje"] = "Foto del celular eliminada."; }
-        catch (Exception error) when (EsErrorEsperado(error)) { TempData["Error"] = Mensaje(error); }
+        try
+        {
+            await tienda.QuitarImagen(id);
+            if (EsAjax()) return Json(new { exito = true, mensaje = "Foto del celular eliminada." });
+            TempData["Mensaje"] = "Foto del celular eliminada.";
+        }
+        catch (Exception error) when (EsErrorEsperado(error))
+        {
+            if (EsAjax()) return BadRequest(new { exito = false, error = Mensaje(error) });
+            TempData["Error"] = Mensaje(error);
+        }
         return RedirectToAction(nameof(Index));
     }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Eliminar(int id)
     {
-        try { await tienda.Eliminar(id); TempData["Mensaje"] = "Celular desactivado."; }
-        catch (Exception error) when (EsErrorEsperado(error)) { TempData["Error"] = Mensaje(error); }
+        try
+        {
+            await tienda.Eliminar(id);
+            if (EsAjax()) return Json(new { exito = true, mensaje = "Celular desactivado." });
+            TempData["Mensaje"] = "Celular desactivado.";
+        }
+        catch (Exception error) when (EsErrorEsperado(error))
+        {
+            if (EsAjax()) return BadRequest(new { exito = false, error = Mensaje(error) });
+            TempData["Error"] = Mensaje(error);
+        }
         return RedirectToAction(nameof(Index));
     }
 
