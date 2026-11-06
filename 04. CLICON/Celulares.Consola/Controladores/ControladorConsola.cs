@@ -24,18 +24,12 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
             }
 
             Console.WriteLine();
-            Console.WriteLine("  ─── 📱 CATÁLOGO & PRODUCTOS ──────────────────────────────────────────");
-            Console.WriteLine("    [1] Ver catálogo completo          [2] Registrar o editar celular");
-            Console.WriteLine("    [3] Desactivar celular             [10] Cargar o cambiar foto");
-            Console.WriteLine("    [11] Quitar foto del celular");
-            Console.WriteLine();
-            Console.WriteLine("  ─── 💳 VENTAS & CRÉDITO BANQUITO ─────────────────────────────────────");
-            Console.WriteLine("    [4] Registrar nueva venta          [5] Consultar elegibilidad BanQuito");
-            Console.WriteLine("    [8] Reintentar venta pendiente     [9] Descartar venta pendiente");
-            Console.WriteLine();
-            Console.WriteLine("  ─── 📄 FACTURACIÓN & SISTEMA ─────────────────────────────────────────");
-            Console.WriteLine("    [6] Buscar facturas por cédula     [7] Consultar comprobante por ID");
-            Console.WriteLine("    [12] Alternar tema Claro / Oscuro  [0] Salir");
+            Console.WriteLine("  ─── 📋 MENÚ PRINCIPAL ────────────────────────────────────────────────");
+            Console.WriteLine("    [1] 📱 Catálogo & Productos");
+            Console.WriteLine("    [2] 💳 Ventas & Crédito BanQuito");
+            Console.WriteLine("    [3] 📄 Facturación & Consultas");
+            Console.WriteLine("    [4] 🌓 Alternar tema Claro / Oscuro");
+            Console.WriteLine("    [0] 🚪 Salir de la aplicación");
             Console.WriteLine("  ──────────────────────────────────────────────────────────────────────");
 
             var opcion = VistaConsola.Texto("Seleccione una opción");
@@ -49,12 +43,98 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
             {
                 switch (opcion)
                 {
+                    case "1": await MenuCatalogo(); break;
+                    case "2": await MenuVentas(); break;
+                    case "3": await MenuFacturacion(); break;
+                    case "4": VistaConsola.CambiarTema(); break;
+                    default:
+                        VistaConsola.Aviso("Opción no válida. Elija una opción entre 0 y 4.");
+                        break;
+                }
+            }
+            catch (Exception error) when (error is ArgumentException or FormatException or InvalidOperationException or HttpRequestException or TaskCanceledException)
+            {
+                VistaConsola.Error(error.Message);
+                VistaConsola.Pausa();
+            }
+        }
+    }
+
+    // =========================================================================
+    // SUBMENÚ 1: CATÁLOGO & PRODUCTOS
+    // =========================================================================
+    private async Task MenuCatalogo()
+    {
+        while (true)
+        {
+            VistaConsola.Encabezado();
+            VistaConsola.Seccion("📱 CATÁLOGO & PRODUCTOS");
+            Console.WriteLine("    [1] Ver catálogo completo");
+            Console.WriteLine("    [2] Registrar nuevo celular");
+            Console.WriteLine("    [3] Modificar celular existente");
+            Console.WriteLine("    [4] Cargar o cambiar foto");
+            Console.WriteLine("    [5] Quitar foto de celular");
+            Console.WriteLine("    [6] Desactivar celular");
+            Console.WriteLine("    [0] ⬅️  Volver al menú principal");
+            Console.WriteLine("  ──────────────────────────────────────────────────────────────────────");
+
+            var subOpcion = VistaConsola.Texto("Seleccione una opción");
+            if (subOpcion == "0") return;
+
+            try
+            {
+                switch (subOpcion)
+                {
                     case "1": await MostrarCatalogo(); VistaConsola.Pausa(); break;
-                    case "2": await GuardarCelular(); VistaConsola.Pausa(); break;
-                    case "3": await DesactivarCelular(); VistaConsola.Pausa(); break;
-                    case "4": await NuevaVenta(); VistaConsola.Pausa(); break;
-                    case "5":
-                        var cedula = VistaConsola.Texto("Ingrese la cédula a evaluar");
+                    case "2": await CrearNuevoCelular(); VistaConsola.Pausa(); break;
+                    case "3": await EditarCelularExistente(); VistaConsola.Pausa(); break;
+                    case "4": await GuardarFoto(); VistaConsola.Pausa(); break;
+                    case "5": await QuitarFoto(); VistaConsola.Pausa(); break;
+                    case "6": await DesactivarCelular(); VistaConsola.Pausa(); break;
+                    default:
+                        VistaConsola.Aviso("Opción no válida. Elija una opción entre 0 y 6.");
+                        break;
+                }
+            }
+            catch (Exception error) when (error is ArgumentException or FormatException or InvalidOperationException or HttpRequestException or TaskCanceledException)
+            {
+                VistaConsola.Error(error.Message);
+                VistaConsola.Pausa();
+            }
+        }
+    }
+
+    // =========================================================================
+    // SUBMENÚ 2: VENTAS & CRÉDITO BANQUITO
+    // =========================================================================
+    private async Task MenuVentas()
+    {
+        while (true)
+        {
+            VistaConsola.Encabezado();
+            VistaConsola.Seccion("💳 VENTAS & CRÉDITO BANQUITO");
+            if (pendiente is not null)
+            {
+                VistaConsola.Aviso($"VENTA PENDIENTE ACTIVA: Cédula {pendiente.Cedula} · Celular ID {pendiente.IdCelular} · Pago: {pendiente.FormaPago}");
+            }
+
+            Console.WriteLine("    [1] Registrar nueva venta");
+            Console.WriteLine("    [2] Consultar elegibilidad de crédito BanQuito");
+            Console.WriteLine("    [3] Reintentar venta pendiente");
+            Console.WriteLine("    [4] Descartar venta pendiente");
+            Console.WriteLine("    [0] ⬅️  Volver al menú principal");
+            Console.WriteLine("  ──────────────────────────────────────────────────────────────────────");
+
+            var subOpcion = VistaConsola.Texto("Seleccione una opción");
+            if (subOpcion == "0") return;
+
+            try
+            {
+                switch (subOpcion)
+                {
+                    case "1": await NuevaVenta(); VistaConsola.Pausa(); break;
+                    case "2":
+                        var cedula = VistaConsola.Texto("Ingrese la cédula a evaluar en BanQuito");
                         if (!string.IsNullOrWhiteSpace(cedula))
                         {
                             var eval = await tienda.EvaluarCredito(cedula);
@@ -62,24 +142,18 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
                         }
                         VistaConsola.Pausa();
                         break;
-                    case "6": await BuscarFacturas(); VistaConsola.Pausa(); break;
-                    case "7":
-                        var idFactura = VistaConsola.Entero("Número de factura a consultar");
-                        await MostrarFactura(idFactura);
-                        VistaConsola.Pausa();
-                        break;
-                    case "8":
+                    case "3":
                         if (pendiente is null)
                             VistaConsola.Info("No hay una venta pendiente en esta sesión.");
                         else
                             await EnviarPendiente();
                         VistaConsola.Pausa();
                         break;
-                    case "9":
-                        if (pendiente is not null && VistaConsola.Confirmar("¿Descartar la venta pendiente actual?"))
+                    case "4":
+                        if (pendiente is not null && VistaConsola.Confirmar("¿Desea descartar la venta pendiente actual?"))
                         {
                             pendiente = null;
-                            VistaConsola.Exito("Referencia pendiente descartada.");
+                            VistaConsola.Exito("Referencia de venta pendiente descartada.");
                         }
                         else if (pendiente is null)
                         {
@@ -87,11 +161,8 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
                         }
                         VistaConsola.Pausa();
                         break;
-                    case "10": await GuardarFoto(); VistaConsola.Pausa(); break;
-                    case "11": await QuitarFoto(); VistaConsola.Pausa(); break;
-                    case "12": VistaConsola.CambiarTema(); break;
                     default:
-                        VistaConsola.Aviso("Opción no válida. Por favor elija un número del menú.");
+                        VistaConsola.Aviso("Opción no válida. Elija una opción entre 0 y 4.");
                         break;
                 }
             }
@@ -99,14 +170,54 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
             {
                 VistaConsola.Error(error.Message);
                 if (pendiente is not null)
-                    VistaConsola.Aviso("La venta conserva su identificador en memoria. Puede reintentar con la opción [8].");
+                    VistaConsola.Aviso("La venta conserva su identificador en memoria. Puede reintentar con la opción [3].");
                 VistaConsola.Pausa();
             }
         }
     }
 
     // =========================================================================
-    // CATÁLOGO DE PRODUCTOS
+    // SUBMENÚ 3: FACTURACIÓN & CONSULTAS
+    // =========================================================================
+    private async Task MenuFacturacion()
+    {
+        while (true)
+        {
+            VistaConsola.Encabezado();
+            VistaConsola.Seccion("📄 FACTURACIÓN & CONSULTAS");
+            Console.WriteLine("    [1] Buscar facturas históricas por cédula");
+            Console.WriteLine("    [2] Consultar comprobante y amortización por ID");
+            Console.WriteLine("    [0] ⬅️  Volver al menú principal");
+            Console.WriteLine("  ──────────────────────────────────────────────────────────────────────");
+
+            var subOpcion = VistaConsola.Texto("Seleccione una opción");
+            if (subOpcion == "0") return;
+
+            try
+            {
+                switch (subOpcion)
+                {
+                    case "1": await BuscarFacturas(); VistaConsola.Pausa(); break;
+                    case "2":
+                        var id = VistaConsola.Entero("Número de factura a consultar");
+                        await MostrarFactura(id);
+                        VistaConsola.Pausa();
+                        break;
+                    default:
+                        VistaConsola.Aviso("Opción no válida. Elija una opción entre 0 y 2.");
+                        break;
+                }
+            }
+            catch (Exception error) when (error is ArgumentException or FormatException or InvalidOperationException or HttpRequestException or TaskCanceledException)
+            {
+                VistaConsola.Error(error.Message);
+                VistaConsola.Pausa();
+            }
+        }
+    }
+
+    // =========================================================================
+    // MÉTODOS DE CATÁLOGO
     // =========================================================================
     private async Task<Celular[]> MostrarCatalogo()
     {
@@ -135,21 +246,37 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
         return celulares;
     }
 
-    private async Task GuardarCelular()
+    private async Task CrearNuevoCelular()
     {
-        await MostrarCatalogo();
-        Console.WriteLine();
-        var textoId = VistaConsola.Texto("ID existente para modificar (o presione ENTER para crear nuevo)");
-        int? id = string.IsNullOrWhiteSpace(textoId) ? null :
-            int.TryParse(textoId, out var existente) && existente > 0 ? existente : throw new ArgumentException("Ingrese un ID positivo del catálogo.");
-
+        VistaConsola.Seccion("REGISTRAR NUEVO CELULAR");
         var nombre = VistaConsola.Texto("Nombre del modelo");
         if (string.IsNullOrWhiteSpace(nombre)) throw new ArgumentException("El nombre es requerido.");
 
         var precio = VistaConsola.Dinero("Precio de lista (USD)");
-        var celular = await tienda.Guardar(id, nombre, precio);
+        var celular = await tienda.Guardar(null, nombre, precio);
 
-        VistaConsola.Exito($"Celular {(id is null ? "registrado" : "modificado")}: {celular.Nombre} · Precio lista: {celular.Precio:C2} · Efectivo (42% desc): {Math.Round(celular.Precio * 0.58m, 2):C2}");
+        VistaConsola.Exito($"Celular registrado exitosamente: {celular.Nombre} · Precio lista: {celular.Precio:C2} · Efectivo (42% desc): {Math.Round(celular.Precio * 0.58m, 2):C2}");
+    }
+
+    private async Task EditarCelularExistente()
+    {
+        var celulares = await MostrarCatalogo();
+        if (celulares.Length == 0) return;
+
+        Console.WriteLine();
+        var id = VistaConsola.Entero("ID del celular que desea modificar");
+        var actual = celulares.SingleOrDefault(c => c.Id == id)
+            ?? throw new ArgumentException("El ID ingresado no existe en el catálogo.");
+
+        VistaConsola.Info($"Editando equipo #{actual.Id}: '{actual.Nombre}' (${actual.Precio:F2})");
+        var nombre = VistaConsola.Texto($"Nuevo nombre [ENTER para mantener '{actual.Nombre}']");
+        if (string.IsNullOrWhiteSpace(nombre)) nombre = actual.Nombre;
+
+        var precioTexto = VistaConsola.Texto($"Nuevo precio de lista [ENTER para mantener '{actual.Precio:F2}']");
+        var precio = string.IsNullOrWhiteSpace(precioTexto) ? actual.Precio : ControladorTienda.InterpretarPrecio(precioTexto);
+
+        var celular = await tienda.Guardar(id, nombre, precio);
+        VistaConsola.Exito($"Celular modificado: {celular.Nombre} · Precio lista: {celular.Precio:C2} · Efectivo (42% desc): {Math.Round(celular.Precio * 0.58m, 2):C2}");
     }
 
     private async Task DesactivarCelular()
@@ -228,7 +355,7 @@ internal sealed class ControladorConsola(ControladorTienda tienda)
     private async Task NuevaVenta()
     {
         if (pendiente is not null)
-            throw new InvalidOperationException("Hay una venta previa pendiente. Reinténtela con la opción [8] o descártela con la opción [9].");
+            throw new InvalidOperationException("Hay una venta previa pendiente. Reinténtela o descártela antes de iniciar otra.");
 
         var celulares = await MostrarCatalogo();
         if (celulares.Length == 0)
