@@ -143,8 +143,7 @@ public sealed class MainPage : Shell
         celularVenta.SelectedIndexChanged += (_, _) => ActualizarTotalVenta();
         forma.SelectedIndexChanged += (_, _) => ActualizarTotalVenta();
 
-        camposCredito.Add(Boton("🔍  Consultar elegibilidad en BanQuito", ConsultarElegibilidad, secundario: true));
-        camposCredito.Add(elegibilidad);
+        elegibilidad.Text = "Ingrese la cédula y consulte si es sujeto a crédito en BanQuito.";
         camposCredito.Add(TextoLabel("Número de cuotas mensuales (3 a 18):", 13, FontAttributes.Bold, Secundario));
         camposCredito.Add(cuotas);
 
@@ -365,25 +364,44 @@ public sealed class MainPage : Shell
             }
         }.ConFondo(Panel, Borde);
 
-        var seccionProducto = Seccion("01 · Selección de Celular",
+        var filaCedula = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            ColumnSpacing = 8
+        };
+        filaCedula.Add(cedula, 0);
+        var btnConsultarBanQuito = Boton("🔍  Consultar", ConsultarElegibilidad, secundario: true);
+        btnConsultarBanQuito.Padding = new Thickness(14, 8);
+        filaCedula.Add(btnConsultarBanQuito, 1);
+
+        var cajaElegibilidad = new Border
+        {
+            Padding = 12,
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            Content = elegibilidad
+        }.ConFondo(Panel, Borde);
+
+        var seccionComprador = Seccion("01 · Comprador & Elegibilidad BanQuito",
+            TextoLabel("Cédula de identidad del cliente:", 13, FontAttributes.Bold, Secundario),
+            filaCedula,
+            cajaElegibilidad,
+            TextoLabel("Nombre completo del comprador:", 13, FontAttributes.Bold, Secundario),
+            comprador);
+
+        var seccionProducto = Seccion("02 · Selección de Celular",
             TextoLabel("Equipo a comprar:", 13, FontAttributes.Bold, Secundario),
             celularVenta,
             resumenPrecio);
 
-        var seccionComprador = Seccion("02 · Datos del Comprador",
-            TextoLabel("Cédula de identidad:", 13, FontAttributes.Bold, Secundario),
-            cedula,
-            TextoLabel("Nombre completo:", 13, FontAttributes.Bold, Secundario),
-            comprador);
-
         var seccionPago = Seccion("03 · Forma de Pago y Financiamiento",
+            TextoLabel("Forma de pago:", 13, FontAttributes.Bold, Secundario),
             forma,
             camposCredito);
 
         var seccionResumen = Seccion("Resumen de la Venta",
             Fila(TextoLabel("TOTAL FACTURADO:", 14, FontAttributes.Bold, Secundario), totalVenta));
 
-        pagina.Content = Contenido(heroVenta, seccionProducto, seccionComprador, seccionPago, seccionResumen,
+        pagina.Content = Contenido(heroVenta, seccionComprador, seccionProducto, seccionPago, seccionResumen,
             Boton("✓  Confirmar y emitir factura", Vender), reintentar, descartarVenta);
         return pagina;
     }
