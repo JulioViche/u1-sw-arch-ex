@@ -65,6 +65,7 @@ public sealed class MainPage : Shell
     private readonly Button descartarVenta;
     private readonly Button botonTema;
     private readonly Button botonActualizarCatalogo;
+    private readonly Button botonServidor;
 
     // Páginas secundarias de navegación
     private readonly ContentPage editor;
@@ -97,6 +98,7 @@ public sealed class MainPage : Shell
 
         botonTema = Boton(temaClaro ? "🌙  Activar tema oscuro" : "☀️  Activar tema claro", CambiarTema, secundario: true);
         botonActualizarCatalogo = Boton("🔄  Actualizar catálogo", async () => await Ejecutar(CargarCatalogo), secundario: true);
+        botonServidor = Boton($"⚙️  Servidor: {ServidorCorto}", CambiarServidor, secundario: true);
 
         vacioCatalogoAviso = new Border
         {
@@ -216,7 +218,12 @@ public sealed class MainPage : Shell
     private View CrearPieFlyout() => new VerticalStackLayout
     {
         Padding = new Thickness(20, 12, 20, 24), Spacing = 10,
-        Children = { TextoLabel("PREFERENCIAS", 11, FontAttributes.Bold, Secundario), botonTema }
+        Children =
+        {
+            TextoLabel("PREFERENCIAS & RED", 11, FontAttributes.Bold, Secundario),
+            botonTema,
+            botonServidor
+        }
     };
 
     // =========================================================================
@@ -226,6 +233,16 @@ public sealed class MainPage : Shell
     {
         var pagina = Pagina("Catálogo", avisoCatalogo);
         pagina.ToolbarItems.Add(new ToolbarItem("Actualizar", null, async () => await Ejecutar(CargarCatalogo)));
+
+        var filaAccionesHero = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            ColumnSpacing = 8
+        };
+        filaAccionesHero.Add(botonActualizarCatalogo, 0);
+        var botonConfigIp = Boton("⚙️ IP", CambiarServidor, secundario: true);
+        botonConfigIp.Padding = new Thickness(14, 9);
+        filaAccionesHero.Add(botonConfigIp, 1);
 
         var heroBanner = new Border
         {
@@ -237,8 +254,8 @@ public sealed class MainPage : Shell
                 {
                     TextoLabel("COMERCIALIZADORA DE CELULARES · GR09", 11, FontAttributes.Bold, Acento),
                     TextoLabel("Catálogo oficial y financiamiento BanQuito", 21, FontAttributes.Bold, Texto),
-                    TextoLabel("Gestiona modelos, precios y fotos guardadas en base de datos SQL Server.", 13, FontAttributes.None, Secundario),
-                    botonActualizarCatalogo
+                    TextoLabel($"Conectado a API: {ServidorCorto}", 12, FontAttributes.None, Secundario),
+                    filaAccionesHero
                 }
             }
         }.ConFondo(Panel, Borde);
@@ -591,16 +608,75 @@ public sealed class MainPage : Shell
         }
     }
 
+    private string ServidorActual
+    {
+        get => Preferences.Default.Get("celulares.servidor", MauiProgram.DireccionServidor);
+        set => Preferences.Default.Set("celulares.servidor", value);
+    }
+
+    private string ServidorCorto => ServidorActual.Replace("http://", "").Replace("https://", "").TrimEnd('/');
+
+    private async Task CambiarServidor()
+    {
+        var nuevo = await DisplayPromptAsync(
+            "Configurar IP del Servidor",
+            "Ingresa la IP o URL de la API Comercializadora:\n\n• Hotspot PC: 192.168.137.1:19102\n• Wi-Fi PC: 192.168.9.106:19102\n• Emulador: 10.0.2.2:19102",
+            "Conectar",
+            "Cancelar",
+            initialValue: ServidorActual,
+            keyboard: Keyboard.Url);
+
+        if (string.IsNullOrWhiteSpace(nuevo)) return;
+        nuevo = nuevo.Trim();
+        if (!nuevo.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+            !nuevo.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            nuevo = "http://" + nuevo;
+        }
+        if (!nuevo.EndsWith("/"))
+        {
+            nuevo += "/";
+        }
+
+        ServidorActual = nuevo;
+        if (botonServidor != null)
+            botonServidor.Text = $"⚙️  Servidor: {ServidorCorto}";
+
+        await Conectar();
+    }
+
     // =========================================================================
     // LÓGICA DE NEGOCIO Y CONECTIVIDAD
     // =========================================================================
-    private async Task Conectar() => await Ejecutar(async () =>
+    private async Task Conectar()
     {
-        http?.Dispose();
-        http = new HttpClient { BaseAddress = ClienteComercializadora.Direccion(MauiProgram.DireccionServidor), Timeout = TimeSpan.FromSeconds(30) };
-        tienda = new ControladorTienda(new ClienteComercializadora(http));
-        await CargarCatalogo();
-    });
+        try
+        {
+            avisoCatalogo.Text = $"Conectando a {ServidorCorto}...";
+            http?.Dispose();
+            http = new HttpClient
+            {
+                BaseAddress = ClienteComercializadora.Direccion(ServidorActual),
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+            tienda = new ControladorTienda(new ClienteComercializadora(http));
+            await CargarCatalogo();
+        }
+        catch (Exception ex)
+        {
+            avisoCatalogo.Text = $"⚠️ Sin conexión a {ServidorCorto}. Presiona '⚙️ IP' para configurar la dirección de tu PC.";
+            var cambiar = await DisplayAlertAsync(
+                "Sin conexión a la API",
+                $"No se pudo conectar al servidor en:\n{ServidorActual}\n\nDetalle: {ex.Message}\n\n¿Deseas cambiar la IP?",
+                "Cambiar IP",
+                "Reintentar");
+
+            if (cambiar)
+            {
+                await CambiarServidor();
+            }
+        }
+    }
 
     private async Task CargarCatalogo()
     {
