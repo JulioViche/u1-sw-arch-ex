@@ -203,7 +203,11 @@ public partial class MainWindow : Window
             card.FotoSource = Imagen(datos);
             Estado.Text = $"Foto guardada en SQL Server para '{card.Nombre}'.";
         }
-        catch (Exception error) { Estado.Text = error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Error al subir foto", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = error.Message;
+        }
     }
 
     private async void QuitarFotoTarjeta(object sender, RoutedEventArgs e)
@@ -219,7 +223,11 @@ public partial class MainWindow : Window
             card.FotoSource = null;
             Estado.Text = $"Foto eliminada de {card.Nombre}.";
         }
-        catch (Exception error) { Estado.Text = error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = error.Message;
+        }
     }
 
     private void EditarCelularTarjeta(object sender, RoutedEventArgs e)
@@ -245,7 +253,7 @@ public partial class MainWindow : Window
     }
 
     // =========================================================================
-    // MODALES (NUEVO, EDITAR, DESACTIVAR)
+    // MODALES OVERLAY (NUEVO, EDITAR, DESACTIVAR)
     // =========================================================================
     private void AbrirModalNuevo(object sender, RoutedEventArgs e)
     {
@@ -278,7 +286,11 @@ public partial class MainWindow : Window
         try
         {
             if (string.IsNullOrWhiteSpace(NuevoModalNombre.Text))
-                throw new ArgumentException("El nombre del modelo es requerido.");
+            {
+                MessageBox.Show("El nombre del modelo es requerido.", "Campo requerido", MessageBoxButton.OK, MessageBoxImage.Information);
+                NuevoModalNombre.Focus();
+                return;
+            }
 
             var precio = ControladorTienda.InterpretarPrecio(NuevoModalPrecio.Text);
             var creado = await tienda.Guardar(null, NuevoModalNombre.Text, precio);
@@ -287,7 +299,11 @@ public partial class MainWindow : Window
             await CargarCatalogo();
             Estado.Text = $"Celular '{creado.Nombre}' registrado exitosamente en el catálogo.";
         }
-        catch (Exception error) { Estado.Text = "Error al crear celular: " + error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Error al registrar celular", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = "Error al crear celular: " + error.Message;
+        }
     }
 
     private void EditarPrecioCambio(object sender, TextChangedEventArgs e) => ActualizarPreviewModalEditar();
@@ -306,7 +322,11 @@ public partial class MainWindow : Window
         try
         {
             if (string.IsNullOrWhiteSpace(EditModalNombre.Text))
-                throw new ArgumentException("El nombre del modelo es requerido.");
+            {
+                MessageBox.Show("El nombre del modelo es requerido.", "Campo requerido", MessageBoxButton.OK, MessageBoxImage.Information);
+                EditModalNombre.Focus();
+                return;
+            }
 
             var precio = ControladorTienda.InterpretarPrecio(EditModalPrecio.Text);
             var actualizado = await tienda.Guardar(celularEnEdicion.Id, EditModalNombre.Text, precio);
@@ -316,7 +336,11 @@ public partial class MainWindow : Window
             await CargarCatalogo();
             Estado.Text = $"Celular '{actualizado.Nombre}' modificado correctamente.";
         }
-        catch (Exception error) { Estado.Text = "Error al guardar cambios: " + error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Error al guardar cambios", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = "Error al guardar cambios: " + error.Message;
+        }
     }
 
     private async void ConfirmarModalDesactivar(object sender, RoutedEventArgs e)
@@ -331,7 +355,11 @@ public partial class MainWindow : Window
             await CargarCatalogo();
             Estado.Text = $"Celular '{nombre}' desactivado del catálogo.";
         }
-        catch (Exception error) { Estado.Text = "Error al desactivar: " + error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "Error al desactivar", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = "Error al desactivar: " + error.Message;
+        }
     }
 
     // =========================================================================
@@ -423,13 +451,25 @@ public partial class MainWindow : Window
 
     private async void EvaluarCredito(object sender, RoutedEventArgs e)
     {
+        var cedula = Cedula.Text.Trim();
+        if (string.IsNullOrWhiteSpace(cedula))
+        {
+            MessageBox.Show("Ingrese el número de cédula del comprador para consultar con BanQuito.", "Cédula requerida", MessageBoxButton.OK, MessageBoxImage.Information);
+            Cedula.Focus();
+            return;
+        }
+
         try
         {
-            var evaluacion = await tienda.EvaluarCredito(Cedula.Text);
+            var evaluacion = await tienda.EvaluarCredito(cedula);
             Mostrar(evaluacion);
             if (!string.IsNullOrWhiteSpace(evaluacion.Nombre)) Comprador.Text = evaluacion.Nombre;
         }
-        catch (Exception error) { Elegibilidad.Text = "No se pudo verificar con BanQuito: " + error.Message; }
+        catch (Exception error)
+        {
+            Elegibilidad.Text = "No se pudo verificar con BanQuito: " + error.Message;
+            MessageBox.Show($"Error al consultar BanQuito:\n\n{error.Message}", "Consulta de crédito", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private async void Vender(object sender, RoutedEventArgs e)
@@ -437,46 +477,116 @@ public partial class MainWindow : Window
         BotonVender.IsEnabled = false;
         try
         {
-            var reintento = pendiente is not null;
-            if (CelularVenta.SelectedItem is not Celular celular) throw new ArgumentException("Seleccione un celular del catálogo.");
+            var cedula = Cedula.Text.Trim();
+            if (string.IsNullOrWhiteSpace(cedula))
+            {
+                MessageBox.Show("Ingrese la cédula del comprador antes de continuar.", "Cédula requerida", MessageBoxButton.OK, MessageBoxImage.Information);
+                Cedula.Focus();
+                return;
+            }
+
+            var comprador = Comprador.Text.Trim();
+            if (string.IsNullOrWhiteSpace(comprador))
+            {
+                MessageBox.Show("Ingrese el nombre completo del comprador.", "Nombre requerido", MessageBoxButton.OK, MessageBoxImage.Information);
+                Comprador.Focus();
+                return;
+            }
+
+            if (CelularVenta.SelectedItem is not Celular celular)
+            {
+                MessageBox.Show("Seleccione un celular del catálogo para registrar la venta.", "Celular no seleccionado", MessageBoxButton.OK, MessageBoxImage.Information);
+                CelularVenta.Focus();
+                return;
+            }
+
             var forma = (FormaPago.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "EFECTIVO";
-            int? cuotas = forma == "CREDITO_DIRECTO" ? Entero(Cuotas.Text) : null;
+            int? cuotas = null;
+
+            if (forma == "CREDITO_DIRECTO")
+            {
+                if (!int.TryParse(Cuotas.Text.Trim(), out var nCuotas) || nCuotas is < 3 or > 18)
+                {
+                    MessageBox.Show("Para crédito BanQuito debe ingresar un número de cuotas entre 3 y 18 meses.", "Plazo de cuotas requerido", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Cuotas.Focus();
+                    return;
+                }
+                cuotas = nCuotas;
+
+                // Evaluación directa con BanQuito
+                var evaluacion = await tienda.EvaluarCredito(cedula);
+                Mostrar(evaluacion);
+
+                if (!evaluacion.SujetoCredito)
+                {
+                    MessageBox.Show($"BanQuito no aprobó la solicitud de crédito para la cédula {cedula}:\n\nMotivo: {evaluacion.Motivo}\n\nPara completar la venta puede seleccionar pago en Efectivo (con 42% de descuento) o usar una cédula aprobada (ej. 0102030405).", "Crédito no elegible en BanQuito", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Estado.Text = $"BanQuito: Crédito rechazado · {evaluacion.Motivo}";
+                    return;
+                }
+
+                if (celular.Precio > evaluacion.MontoMaximo)
+                {
+                    MessageBox.Show($"El precio del modelo ({celular.Precio:C2}) excede el cupo crediticio máximo aprobado por BanQuito ({evaluacion.MontoMaximo:C2}) para este cliente.\n\nPor favor elija un modelo de menor valor o cambie la forma de pago a Efectivo.", "Cupo insuficiente", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    Estado.Text = $"BanQuito: Precio supera el cupo de {evaluacion.MontoMaximo:C2}.";
+                    return;
+                }
+            }
+
+            var reintento = pendiente is not null;
             var actual = new SolicitudFactura
             {
-                Cedula = Cedula.Text.Trim(), NombreCliente = Comprador.Text.Trim(), IdCelular = celular.Id,
-                FormaPago = forma, NumeroCuotas = cuotas, PrecioEsperado = celular.Precio
+                Cedula = cedula,
+                NombreCliente = comprador,
+                IdCelular = celular.Id,
+                FormaPago = forma,
+                NumeroCuotas = cuotas,
+                PrecioEsperado = celular.Precio
             };
 
             if (pendiente is not null && (pendiente.Cedula != actual.Cedula || pendiente.NombreCliente != actual.NombreCliente ||
                 pendiente.IdCelular != actual.IdCelular || pendiente.FormaPago != actual.FormaPago ||
                 pendiente.NumeroCuotas != actual.NumeroCuotas || pendiente.PrecioEsperado != actual.PrecioEsperado))
-                throw new InvalidOperationException("Hay una venta pendiente. Reintente la misma operación o resuélvala antes de cambiar los datos.");
-
-            if (forma == "CREDITO_DIRECTO" && !reintento)
             {
-                var evaluacion = await tienda.EvaluarCredito(actual.Cedula);
-                Mostrar(evaluacion);
-                if (!evaluacion.SujetoCredito || celular.Precio > evaluacion.MontoMaximo)
-                    throw new InvalidOperationException("Crédito no elegible o precio superior al monto máximo aprobado por BanQuito.");
+                MessageBox.Show("Hay una venta previa pendiente de confirmación. Reinténtela con los mismos datos o inicie una 'Nueva venta' para descartar esa referencia.", "Venta pendiente", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
             var total = forma == "EFECTIVO" ? ControladorTienda.TotalEfectivo(celular.Precio) : celular.Precio;
-            if (MessageBox.Show($"{celular.Nombre}\n{forma}\nTotal a facturar: {total:C2}\n\n¿Confirmar la venta y emitir la factura?", "Confirmar transacción", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            var mensajeConfirmacion = forma == "EFECTIVO"
+                ? $"{celular.Nombre}\nForma de pago: Efectivo (42% desc. aplicado)\nTotal a facturar: {total:C2}\n\n¿Confirmar la venta y emitir la factura?"
+                : $"{celular.Nombre}\nForma de pago: Crédito BanQuito ({cuotas} cuotas fijas)\nTotal financiado: {total:C2}\n\n¿Confirmar la venta y emitir la factura?";
+
+            if (MessageBox.Show(mensajeConfirmacion, "Confirmar transacción", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
 
             pendiente ??= actual;
             await EnviarPendiente();
         }
-        catch (Exception error) { Estado.Text = "No se pudo completar la venta: " + error.Message; }
-        finally { BotonVender.IsEnabled = true; }
+        catch (Exception error)
+        {
+            MessageBox.Show($"No se pudo registrar la venta:\n\n{error.Message}", "Aviso de facturación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = "No se pudo completar la venta: " + error.Message;
+        }
+        finally
+        {
+            BotonVender.IsEnabled = true;
+        }
     }
 
     private async void ReintentarVenta(object sender, RoutedEventArgs e)
     {
-        if (pendiente is null) { Estado.Text = "No hay una venta pendiente en esta sesión."; return; }
+        if (pendiente is null)
+        {
+            MessageBox.Show("No hay una venta pendiente en esta sesión.", "Información", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
         BotonReintentar.IsEnabled = false;
         try { await EnviarPendiente(); }
-        catch (Exception error) { Estado.Text = "La venta sigue pendiente. Reintente con los mismos datos: " + error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show($"La venta sigue pendiente. Reintente con los mismos datos:\n\n{error.Message}", "Reintento de venta", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = "La venta sigue pendiente: " + error.Message;
+        }
         finally { BotonReintentar.IsEnabled = true; }
     }
 
@@ -486,6 +596,8 @@ public partial class MainWindow : Window
         pendiente = null;
         Cedula.Clear(); Comprador.Clear(); Cuotas.Clear(); CelularVenta.SelectedItem = null;
         Elegibilidad.Text = "Ingrese la cédula y consulte si es sujeto a crédito en BanQuito.";
+        Elegibilidad.Foreground = (Brush)Resources["AccentBrush"];
+        ElegibilidadBox.BorderBrush = (Brush)Resources["EdgeBrush"];
         Estado.Text = "Nueva venta lista.";
     }
 
@@ -494,21 +606,50 @@ public partial class MainWindow : Window
     // =========================================================================
     private async void BuscarFacturas(object sender, RoutedEventArgs e)
     {
+        var cedula = CedulaBusqueda.Text.Trim();
+        if (string.IsNullOrWhiteSpace(cedula))
+        {
+            MessageBox.Show("Ingrese una cédula para consultar sus facturas históricas.", "Cédula requerida", MessageBoxButton.OK, MessageBoxImage.Information);
+            CedulaBusqueda.Focus();
+            return;
+        }
+
         try
         {
-            var facturas = await tienda.FacturasPorCedula(CedulaBusqueda.Text);
+            var facturas = await tienda.FacturasPorCedula(cedula);
             FacturasEncontradas.ItemsSource = facturas;
             HintBusqueda.Visibility = Visibility.Collapsed;
-            Estado.Text = facturas.Length == 0 ? "No hay facturas para esa cédula." : $"{facturas.Length} facturas encontradas. Seleccione una para ver detalle.";
+            Estado.Text = facturas.Length == 0 ? $"No hay facturas para la cédula {cedula}." : $"{facturas.Length} facturas encontradas. Seleccione una para ver detalle.";
+            if (facturas.Length == 0)
+            {
+                MessageBox.Show($"No se registraron facturas para la cédula {cedula}.", "Sin facturas", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
-        catch (Exception error) { Estado.Text = error.Message; }
+        catch (Exception error)
+        {
+            MessageBox.Show($"Error al consultar facturas: {error.Message}", "Error de consulta", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = error.Message;
+        }
     }
 
     private async void AbrirFactura(object sender, RoutedEventArgs e)
     {
-        if (FacturasEncontradas.SelectedItem is not Factura factura) { Estado.Text = "Busque y seleccione una factura de la tabla."; return; }
-        try { await MostrarFactura(factura.Id); Estado.Text = $"Factura #{factura.Id} consultada."; }
-        catch (Exception error) { Estado.Text = error.Message; }
+        if (FacturasEncontradas.SelectedItem is not Factura factura)
+        {
+            MessageBox.Show("Por favor seleccione una factura de la tabla para ver su comprobante.", "Factura no seleccionada", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            await MostrarFactura(factura.Id);
+            Estado.Text = $"Comprobante de Factura #{factura.Id} cargado.";
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show($"Error al abrir la factura #{factura.Id}: {error.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Estado.Text = error.Message;
+        }
     }
 
     private async Task EnviarPendiente()
@@ -544,10 +685,19 @@ public partial class MainWindow : Window
         VistaDetalleFactura.Visibility = Visibility.Visible;
     }
 
-    private void Mostrar(EvaluacionCredito evaluacion) => Elegibilidad.Text = evaluacion.SujetoCredito
-        ? $"BanQuito: Elegible · Cupo máximo: {evaluacion.MontoMaximo:C2}"
-        : $"BanQuito: No elegible · {evaluacion.Motivo}";
-
-    private static int Entero(string? valor) => int.TryParse(valor, out var numero) && numero is >= 3 and <= 18
-        ? numero : throw new ArgumentException("Ingrese entre 3 y 18 cuotas.");
+    private void Mostrar(EvaluacionCredito evaluacion)
+    {
+        if (evaluacion.SujetoCredito)
+        {
+            Elegibilidad.Text = $"✓ BanQuito: Elegible · Cupo máximo: {evaluacion.MontoMaximo:C2}";
+            Elegibilidad.Foreground = (Brush)Resources["SuccessBrush"];
+            ElegibilidadBox.BorderBrush = (Brush)Resources["SuccessBrush"];
+        }
+        else
+        {
+            Elegibilidad.Text = $"✗ BanQuito: No elegible · {evaluacion.Motivo}";
+            Elegibilidad.Foreground = (Brush)Resources["DangerBrush"];
+            ElegibilidadBox.BorderBrush = (Brush)Resources["DangerBrush"];
+        }
+    }
 }

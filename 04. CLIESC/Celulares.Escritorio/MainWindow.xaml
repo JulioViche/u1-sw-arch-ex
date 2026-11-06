@@ -188,7 +188,7 @@
       <Setter Property="Background" Value="{DynamicResource GridBrush}"/>
       <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource EdgeBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="RowBackground" Value="{DynamicResource RowBrush}"/>
       <Setter Property="AlternatingRowBackground" Value="{DynamicResource AltRowBrush}"/>
       <Setter Property="GridLinesVisibility" Value="Horizontal"/>
@@ -223,11 +223,11 @@
   <!-- CONTENEDOR PRINCIPAL CON CAPA DE MODALES -->
   <Grid>
     <Grid.RowDefinitions>
-      <!-- Header Superior Fijo -->
+      <!-- Header Superior Fijo (Row 0) -->
       <RowDefinition Height="Auto"/>
-      <!-- Contenido Principal con Scroll -->
+      <!-- Contenido Principal con Scroll (Row 1) -->
       <RowDefinition Height="*"/>
-      <!-- Barra de Estado Inferior -->
+      <!-- Barra de Estado Inferior (Row 2) -->
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
@@ -281,7 +281,7 @@
                 <TextBlock Text="Catálogo oficial y financiamiento BanQuito" FontSize="26" FontWeight="Black" Margin="0,4,0,4"/>
                 <TextBlock Text="Gestiona modelos, precios y fotos guardadas en base de datos SQL Server." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
               </StackPanel>
-              <Button Grid.Column="1" Content="💳  Ir a Ventas &amp; Facturación  &rarr;" Click="MostrarTabVentas" VerticalAlignment="Center" Margin="0" Padding="18,10"/>
+              <Button Grid.Column="1" Content="💳  Ir a Ventas &amp; Facturación  ➡️" Click="MostrarTabVentas" VerticalAlignment="Center" Margin="0" Padding="18,10"/>
             </Grid>
           </Border>
 
@@ -328,11 +328,18 @@
                     </Grid.RowDefinitions>
 
                     <!-- ÁREA SUPERIOR: FOTO O PLACEHOLDER PARA SUBIR -->
-                    <Border Grid.Row="0" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="0,0,0,1" ClipToBounds="True">
+                    <Border Grid.Row="0" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="0,0,0,1" CornerRadius="15,15,0,0" ClipToBounds="True">
                       <Grid>
                         <!-- Placeholder si no tiene foto -->
                         <Button Click="CargarFotoTarjeta" Tag="{Binding}" Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14"
                                 Visibility="{Binding PlaceholderVisible}">
+                          <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                              <Border Background="{TemplateBinding Background}" CornerRadius="15,15,0,0" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                              </Border>
+                            </ControlTemplate>
+                          </Button.Template>
                           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="＋" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                             <TextBlock Text="Subir foto" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center"/>
@@ -358,7 +365,7 @@
                     </Border>
 
                     <!-- ÁREA INFERIOR: DETALLE DEL MODELO, PRECIOS Y ACCIONES -->
-                    <Border Grid.Row="1" Padding="16,14">
+                    <Border Grid.Row="1" Padding="16,14" CornerRadius="0,0,15,15">
                       <StackPanel>
                         <TextBlock Text="{Binding Codigo}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,2"/>
                         <TextBlock Text="{Binding Nombre}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis" Margin="0,0,0,10" ToolTip="{Binding Nombre}"/>
@@ -403,7 +410,7 @@
                 <TextBlock Text="Gestión de Ventas y Facturación" FontSize="26" FontWeight="Black" Margin="0,4,0,4"/>
                 <TextBlock Text="Registra ventas con descuento al contado o financiamiento directo con BanQuito, y consulta historiales de compra por cédula." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
               </StackPanel>
-              <Button Grid.Column="1" Content="📱  Ir a Catálogo  &rarr;" Click="MostrarTabCatalogo" VerticalAlignment="Center" Margin="0" Padding="18,10" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}"/>
+              <Button Grid.Column="1" Content="📱  Ir a Catálogo  ➡️" Click="MostrarTabCatalogo" VerticalAlignment="Center" Margin="0" Padding="18,10" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}"/>
             </Grid>
           </Border>
 
@@ -508,19 +515,21 @@
                   </StackPanel>
                 </Border>
 
-                <!-- Tabla de Facturas Encontradas -->
-                <DataGrid x:Name="FacturasEncontradas" Height="260" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Single">
-                  <DataGrid.Columns>
-                    <DataGridTextColumn Header="# ID" Binding="{Binding Id}" Width="55"/>
-                    <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:yyyy-MM-dd}}" Width="95"/>
-                    <DataGridTextColumn Header="Celular" Binding="{Binding Celular}" Width="*"/>
-                    <DataGridTextColumn Header="Pago" Binding="{Binding FormaPago}" Width="95"/>
-                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat={}{0:C2}}" Width="90"/>
-                    <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="85"/>
-                  </DataGrid.Columns>
-                </DataGrid>
+                <!-- Tabla de Facturas Encontradas con bordes suavemente redondeados -->
+                <Border CornerRadius="12" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" ClipToBounds="True">
+                  <DataGrid x:Name="FacturasEncontradas" Height="260" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Single" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="# ID" Binding="{Binding Id}" Width="55"/>
+                      <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:yyyy-MM-dd}}" Width="95"/>
+                      <DataGridTextColumn Header="Celular" Binding="{Binding Celular}" Width="*"/>
+                      <DataGridTextColumn Header="Pago" Binding="{Binding FormaPago}" Width="95"/>
+                      <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat={}{0:C2}}" Width="90"/>
+                      <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="85"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
 
-                <Button Content="Ver detalle del comprobante  &rarr;" Click="AbrirFactura" Margin="0,14,0,0" Padding="16,10" HorizontalAlignment="Right" Background="{DynamicResource CardBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"/>
+                <Button Content="Ver detalle del comprobante  ➡️" Click="AbrirFactura" Margin="0,14,0,0" Padding="16,10" HorizontalAlignment="Right" Background="{DynamicResource CardBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentBrush}"/>
               </StackPanel>
             </Border>
           </Grid>
@@ -530,7 +539,7 @@
         <!-- VISTA 3: DETALLE DE FACTURA / VOUCHER (IDÉNTICO A FACTURA.CSHTML) -->
         <!-- =================================================================== -->
         <StackPanel x:Name="VistaDetalleFactura" Visibility="Collapsed" MaxWidth="960" HorizontalAlignment="Center">
-          <Button Content="&larr;  Volver" Click="VolverDeFactura" HorizontalAlignment="Left" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,0,16" Padding="14,8"/>
+          <Button Content="⬅️  Volver" Click="VolverDeFactura" HorizontalAlignment="Left" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource AccentBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Margin="0,0,0,16" Padding="14,8"/>
 
           <!-- Tarjeta Voucher / Comprobante -->
           <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="20" Padding="28">
@@ -595,20 +604,22 @@
                 </StackPanel>
               </Border>
 
-              <!-- Tabla de Amortización Francesa -->
+              <!-- Tabla de Amortización Francesa con bordes redondeados -->
               <StackPanel x:Name="SeccionAmortizacion">
                 <TextBlock Text="PLAN DE PAGOS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
                 <TextBlock Text="Amortización" FontSize="20" FontWeight="Bold" Margin="0,2,0,10"/>
-                <DataGrid x:Name="TablaCuotas" Height="220" IsReadOnly="True" AutoGenerateColumns="False">
-                  <DataGrid.Columns>
-                    <DataGridTextColumn Header="Cuota" Binding="{Binding NumeroCuota}" Width="65"/>
-                    <DataGridTextColumn Header="Fecha" Binding="{Binding FechaPago, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
-                    <DataGridTextColumn Header="Valor" Binding="{Binding ValorCuota, StringFormat={}{0:C2}}" Width="110"/>
-                    <DataGridTextColumn Header="Interés" Binding="{Binding InteresPagado, StringFormat={}{0:C2}}" Width="110"/>
-                    <DataGridTextColumn Header="Capital" Binding="{Binding CapitalPagado, StringFormat={}{0:C2}}" Width="110"/>
-                    <DataGridTextColumn Header="Saldo" Binding="{Binding Saldo, StringFormat={}{0:C2}}" Width="*"/>
-                  </DataGrid.Columns>
-                </DataGrid>
+                <Border CornerRadius="12" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" ClipToBounds="True">
+                  <DataGrid x:Name="TablaCuotas" Height="220" IsReadOnly="True" AutoGenerateColumns="False" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Cuota" Binding="{Binding NumeroCuota}" Width="65"/>
+                      <DataGridTextColumn Header="Fecha" Binding="{Binding FechaPago, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
+                      <DataGridTextColumn Header="Valor" Binding="{Binding ValorCuota, StringFormat={}{0:C2}}" Width="110"/>
+                      <DataGridTextColumn Header="Interés" Binding="{Binding InteresPagado, StringFormat={}{0:C2}}" Width="110"/>
+                      <DataGridTextColumn Header="Capital" Binding="{Binding CapitalPagado, StringFormat={}{0:C2}}" Width="110"/>
+                      <DataGridTextColumn Header="Saldo" Binding="{Binding Saldo, StringFormat={}{0:C2}}" Width="*"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
               </StackPanel>
 
             </StackPanel>
@@ -624,11 +635,11 @@
     </Border>
 
     <!-- =================================================================== -->
-    <!-- CAPA SUPERIOR: MODALES DIALOG (IDÉNTICOS A LOS DIALOG DE LA WEB) -->
+    <!-- CAPA SUPERIOR: MODALES OVERLAY (SPAN COMPLETO ROWS 0-2, ZINDEX 999) -->
     <!-- =================================================================== -->
 
     <!-- MODAL 1: REGISTRAR NUEVO CELULAR -->
-    <Grid x:Name="ModalNuevo" Visibility="Collapsed" Background="#8A000000">
+    <Grid x:Name="ModalNuevo" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed" Background="#B3000000">
       <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="480" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel>
           <Grid Margin="0,0,0,16">
@@ -663,7 +674,7 @@
     </Grid>
 
     <!-- MODAL 2: EDITAR CELULAR -->
-    <Grid x:Name="ModalEditar" Visibility="Collapsed" Background="#8A000000">
+    <Grid x:Name="ModalEditar" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed" Background="#B3000000">
       <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="480" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel>
           <Grid Margin="0,0,0,16">
@@ -698,7 +709,7 @@
     </Grid>
 
     <!-- MODAL 3: CONFIRMAR DESACTIVACIÓN -->
-    <Grid x:Name="ModalDesactivar" Visibility="Collapsed" Background="#8A000000">
+    <Grid x:Name="ModalDesactivar" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed" Background="#B3000000">
       <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource EdgeBrush}" BorderThickness="1" CornerRadius="18" Padding="26" Width="450" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel>
           <Grid Margin="0,0,0,14">
