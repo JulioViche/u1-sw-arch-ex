@@ -37,53 +37,5 @@ services:
         echo '¡Bases de datos ComercializadoraCelulares y BanQuitoCore inicializadas con éxito!'
       "
 
-  banquito-api:
-    build:
-      context: .
-      dockerfile: 04. SERVIDOR/BanQuito.Api/Dockerfile
-    container_name: examen_banquito_api
-    restart: unless-stopped
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-    environment:
-      - URLS=http://0.0.0.0:19101
-      - ConnectionStrings__BaseDatos=Server=sqlserver,1433;Database=BanQuitoCore;User Id=sa;Password=Examen2026*Celulares;TrustServerCertificate=True
-    ports:
-      - "19101:19101"
-
-  comercializadora-api:
-    build:
-      context: .
-      dockerfile: 04. SERVIDOR/Comercializadora.Api/Dockerfile
-    container_name: examen_comercializadora_api
-    restart: unless-stopped
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-      banquito-api:
-        condition: service_started
-    environment:
-      - URLS=http://0.0.0.0:19102
-      - ConnectionStrings__BaseDatos=Server=sqlserver,1433;Database=ComercializadoraCelulares;User Id=sa;Password=Examen2026*Celulares;TrustServerCertificate=True
-      - Servicios__BanQuitoUrl=http://banquito-api:19101/
-    ports:
-      - "19102:19102"
-
-  celulares-web:
-    build:
-      context: .
-      dockerfile: 04. CLIWEB/Celulares.Web/Dockerfile
-    container_name: examen_celulares_web
-    restart: unless-stopped
-    depends_on:
-      comercializadora-api:
-        condition: service_started
-    environment:
-      - URLS=http://0.0.0.0:19103
-      - CelularesApiUrl=http://comercializadora-api:19102/
-    ports:
-      - "19103:19103"
-
 volumes:
   mssql_data:
