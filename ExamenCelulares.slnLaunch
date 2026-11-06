@@ -1,6 +1,6 @@
 [
   {
-    "Name": "Examen Celulares (Completo)",
+    "Name": "Servidores + Web",
     "Projects": [
       {
         "Path": "04. SERVIDOR\\BanQuito.Api\\BanQuito.Api.csproj",
@@ -12,6 +12,27 @@
       },
       {
         "Path": "04. CLIWEB\\Celulares.Web\\Celulares.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "Servidores + Web + Escritorio",
+    "Projects": [
+      {
+        "Path": "04. SERVIDOR\\BanQuito.Api\\BanQuito.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "04. SERVIDOR\\Comercializadora.Api\\Comercializadora.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "04. CLIWEB\\Celulares.Web\\Celulares.Web.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "04. CLIESC\\Celulares.Escritorio\\Celulares.Escritorio.csproj",
         "Action": "Start"
       }
     ]
