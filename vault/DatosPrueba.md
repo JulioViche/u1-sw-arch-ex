@@ -69,3 +69,4 @@ En la base de datos `ComercializadoraCelulares` se encuentran disponibles:
 1. En la sección **"Historial de compra"**, ingresar la cédula con la que realizaste una venta (ej. `0102030405`).
 2. Presionar **"Buscar facturas"**.
 3. **Resultado:** Se listan todas las facturas históricas asociadas a esa cédula.
+

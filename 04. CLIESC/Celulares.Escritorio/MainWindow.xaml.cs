@@ -195,7 +195,12 @@ public partial class MainWindow : Window
 
     private async void EvaluarCredito(object sender, RoutedEventArgs e)
     {
-        try { Mostrar(await tienda.EvaluarCredito(Cedula.Text)); }
+        try
+        {
+            var evaluacion = await tienda.EvaluarCredito(Cedula.Text);
+            Mostrar(evaluacion);
+            if (!string.IsNullOrWhiteSpace(evaluacion.Nombre)) Comprador.Text = evaluacion.Nombre;
+        }
         catch (Exception error) { Elegibilidad.Text = "No se pudo verificar con BanQuito: " + error.Message; }
     }
 

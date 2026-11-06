@@ -497,6 +497,15 @@
                 ? `Elegible · máximo ${moneda.format(data.montoMaximo)}. BanQuito vuelve a validar al confirmar.`
                 : `No elegible · ${data.motivo}`;
             resultado.dataset.state = data.sujetoCredito ? 'ok' : 'bad';
+
+            // Autocompletar el nombre del cliente si BanQuito lo identificó
+            if (data.nombre && data.nombre.trim().length > 0) {
+                const inputNombre = document.getElementById('Venta_NombreCliente');
+                if (inputNombre) {
+                    inputNombre.value = data.nombre.trim();
+                    mostrarToast(`Cliente identificado: ${data.nombre.trim()}`, 'success');
+                }
+            }
         } catch (error) { resultado.textContent = error.message; resultado.dataset.state = 'bad'; }
         finally { boton.disabled = false; }
     });
