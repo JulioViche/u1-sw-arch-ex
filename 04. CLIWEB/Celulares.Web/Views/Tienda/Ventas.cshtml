@@ -50,15 +50,16 @@
             <label asp-for="Venta.NombreCliente">Nombre del comprador</label>
             <input asp-for="Venta.NombreCliente" maxlength="100" placeholder="Nombre completo del cliente" autocomplete="name" required />
 
-            <label for="celularVenta">Celulares a adquirir (selecciona uno o varios)</label>
-            <p class="helper">En computadora, mantén Ctrl para seleccionar varios modelos.</p>
-            <select id="celularVenta" multiple required size="5">
-                @foreach (var c in Model.Catalogo) { 
-                    <option value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)" selected="@(Model.Venta.Detalles.Any(d => d.IdCelular == c.Id) ? "selected" : null)">
-                        @c.Nombre · @c.Precio.ToString("C2")
-                    </option> 
-                }
-            </select>
+            <label>Celulares a adquirir</label>
+            <details class="phone-picker">
+                <summary id="celularResumen">Selecciona uno o varios modelos</summary>
+                <div class="phone-options" id="celularVenta">
+                    @foreach (var c in Model.Catalogo) {
+                        <label><input type="checkbox" value="@c.Id" data-precio="@c.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)" checked="@(Model.Venta.Detalles.Any(d => d.IdCelular == c.Id))" />
+                            <span>@c.Nombre · @c.Precio.ToString("C2")</span></label>
+                    }
+                </div>
+            </details>
 
             <div id="resumenPrecio" class="price-summary" role="status" aria-live="polite">
                 Elige un celular para calcular el total.
@@ -199,9 +200,13 @@
     const resumen = document.getElementById('resumenPrecio');
 
     function actualizarPrecio() {
-        const opciones = Array.from(celular.selectedOptions);
+        const opciones = Array.from(celular.querySelectorAll('input:checked'));
         const valor = opciones.reduce((s, o) => s + Number(o.dataset.precio), 0);
         document.getElementById('Venta_IdCelular').value = opciones[0]?.value || '';
+        document.getElementById('celularResumen').textContent = opciones.length
+            ? opciones.map(o => o.nextElementSibling.textContent.trim()).join(', ')
+            : 'Selecciona uno o varios modelos';
+        celular.querySelectorAll('input[type="checkbox"]').forEach(o => o.required = opciones.length === 0);
         detalles.replaceChildren();
         opciones.forEach((o, i) => {
             for (const [campo, valor] of [['IdCelular', o.value], ['PrecioEsperado', o.dataset.precio]]) {
