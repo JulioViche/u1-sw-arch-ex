@@ -85,7 +85,7 @@ public partial class MainWindow : Window
             if (BotonActualizar != null)
             {
                 BotonActualizar.IsEnabled = true;
-                BotonActualizar.Content = "🔄  Actualizar";
+                BotonActualizar.Content = "🔄  Actualizar catálogo";
             }
         }
     }

@@ -281,7 +281,7 @@
                 <TextBlock Text="Catálogo oficial y financiamiento BanQuito" FontSize="26" FontWeight="Black" Margin="0,4,0,4"/>
                 <TextBlock Text="Gestiona modelos, precios y fotos guardadas en base de datos SQL Server." Foreground="{DynamicResource MutedBrush}" FontSize="13"/>
               </StackPanel>
-              <Button Grid.Column="1" Content="💳  Ir a Ventas &amp; Facturación  ➡️" Click="MostrarTabVentas" VerticalAlignment="Center" Margin="0" Padding="18,10"/>
+              <Button x:Name="BotonActualizar" Grid.Column="1" Content="🔄  Actualizar catálogo" Click="ActualizarCatalogo" VerticalAlignment="Center" Margin="0" Padding="18,10" FontWeight="Bold"/>
             </Grid>
           </Border>
 
@@ -295,10 +295,7 @@
               <TextBlock Text="EQUIPOS DISPONIBLES" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
               <TextBlock Text="Modelos en catálogo" FontSize="22" FontWeight="Black" Margin="0,2,0,0"/>
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-              <Button x:Name="BotonActualizar" Content="🔄  Actualizar" Click="ActualizarCatalogo" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource EdgeBrush}" Padding="12,8" MinHeight="38" Margin="0,0,8,0"/>
-              <Button Content="＋ Registrar nuevo celular" Click="AbrirModalNuevo" Padding="16,8" MinHeight="38" Margin="0"/>
-            </StackPanel>
+            <Button Grid.Column="1" Content="＋ Registrar nuevo celular" Click="AbrirModalNuevo" Padding="16,8" MinHeight="38" Margin="0" VerticalAlignment="Center"/>
           </Grid>
 
           <!-- Aviso de Catálogo Vacío -->

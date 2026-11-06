@@ -530,11 +530,13 @@ header.app-header, header {
     align-items: center !important;
     gap: 0.65rem !important;
     white-space: nowrap !important;
+    margin: 0 !important;
     padding: 0.75rem 1.4rem !important;
     border-radius: 12px !important;
     font-size: 0.94rem !important;
     font-weight: 800 !important;
     text-decoration: none !important;
+    cursor: pointer !important;
     transition: transform .18s ease, filter .18s ease, box-shadow .18s ease !important;
     background: var(--teal) !important;
     color: #08111d !important;
