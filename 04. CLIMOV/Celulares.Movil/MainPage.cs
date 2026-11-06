@@ -397,7 +397,7 @@ public sealed class MainPage : Shell
     {
         var resultado = await Controlador().EvaluarCredito(cedula.Text?.Trim() ?? "");
         elegibilidad.Text = resultado.SujetoCredito ? $"Elegible · máximo {resultado.MontoMaximo:C2}" : $"No elegible · {resultado.Motivo}";
-        if (!string.IsNullOrWhiteSpace(resultado.Nombre)) nombreCliente.Text = resultado.Nombre;
+        if (!string.IsNullOrWhiteSpace(resultado.Nombre)) comprador.Text = resultado.Nombre;
     });
 
     private async Task Vender() => await Ejecutar(async () =>
