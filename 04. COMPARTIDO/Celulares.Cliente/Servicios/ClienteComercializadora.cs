@@ -84,6 +84,6 @@ public sealed class ClienteComercializadora(HttpClient http)
             if (json.RootElement.TryGetProperty("title", out var titulo)) mensaje = titulo.GetString();
         }
         catch (JsonException) { }
-        throw new InvalidOperationException(mensaje ?? $"El servidor rechazó la operación (HTTP {(int)respuesta.StatusCode}).");
+        throw new ErrorNegocio(mensaje ?? $"El servidor rechazó la operación (HTTP {(int)respuesta.StatusCode}).", (int)respuesta.StatusCode);
     }
 }
