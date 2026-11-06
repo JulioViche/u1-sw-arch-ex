@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Examen Celulares (Completo)",
+    "Projects": [
+      {
+        "Path": "04. SERVIDOR\\BanQuito.Api\\BanQuito.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "04. SERVIDOR\\Comercializadora.Api\\Comercializadora.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "04. CLIWEB\\Celulares.Web\\Celulares.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

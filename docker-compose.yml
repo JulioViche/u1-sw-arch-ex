@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: examen_sqlserver
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Examen2026*Celulares
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Examen2026*Celulares' -C -Q 'SELECT 1' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: examen_sqlserver_init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./03. BDD:/scripts:ro
+    entrypoint: >
+      bash -c "
+        echo 'Conectando con SQL Server para inicializar bases y datos...'
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Examen2026*Celulares' -C -i /scripts/01_CrearBases.sql
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Examen2026*Celulares' -C -i /scripts/02_DatosPrueba.sql
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Examen2026*Celulares' -C -i /scripts/03_MigrarImagenes.sql
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Examen2026*Celulares' -C -i /scripts/BanQuito_01_CrearBase.sql
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Examen2026*Celulares' -C -i /scripts/BanQuito_02_DatosPrueba.sql
+        echo '¡Bases de datos ComercializadoraCelulares y BanQuitoCore inicializadas con éxito!'
+      "
+
+volumes:
+  mssql_data:
