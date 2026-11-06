@@ -66,7 +66,28 @@ En la base de datos `ComercializadoraCelulares` se encuentran disponibles:
 ---
 
 ### Escenario E: Historial de Compras
-1. En la sección **"Historial de compra"**, ingresar la cédula con la que realizaste una venta (ej. `0102030405`).
+1. En la sección **"Historial de compras por cédula"**, ingresar la cédula con la que realizaste una venta (ej. `0102030405`).
 2. Presionar **"Buscar facturas"**.
-3. **Resultado:** Se listan todas las facturas históricas asociadas a esa cédula.
+3. **Resultado:** Se listan todas las facturas históricas asociadas a esa cédula con botón directo para ver su detalle.
+
+---
+
+### ¿Cómo reiniciar las pruebas o liberar clientes bloqueados?
+Cuando un cliente adquiere un celular a crédito, BanQuito registra un crédito `ACTIVO` que bloquea nuevas solicitudes de crédito para esa cédula (cumpliendo la regla del examen).
+
+Para volver a dejar a todos los clientes elegibles:
+
+1. **Liberar clientes al instante (1 segundo):**
+   * Doble clic en `reiniciar-db.bat` (opción 1) o ejecutar en PowerShell:
+     ```powershell
+     .\reiniciar-db.ps1
+     ```
+   * *Efecto:* Borra las ventas y créditos de prueba para que todos los usuarios vuelvan a calificar, conservando tus celulares y fotos intactos.
+
+2. **Reinicio total de Docker (Desde cero):**
+   * Doble clic en `reiniciar-db.bat` (opción 2) o ejecutar en PowerShell:
+     ```powershell
+     .\reiniciar-db.ps1 -Total
+     ```
+   * *Efecto:* Borra los volúmenes de Docker y recrea las bases con los scripts originales.
 
